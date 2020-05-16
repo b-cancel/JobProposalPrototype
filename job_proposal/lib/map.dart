@@ -2,23 +2,19 @@
 import 'dart:async';
 
 //flutter
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 //plugins
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:job_proposal/main.dart';
 
 //TODO: grab the latitude and longitude using an API that returns it for each address
 //TODO: if the address changes to something with no latitude and longitude then dont show the map
 //NOTE: these two changes are primarily for the widget that wraps the map
 class MapOfAddress extends StatefulWidget {
-  //TODO: pass the lat long and update the map if it changes
-  //TODO: assert that the passed lat long are valid
-
-  MapOfAddress({
-    @required this.addressTarget,
-  });
-
-  final ValueNotifier<LatLng> addressTarget;
+  const MapOfAddress();
 
   @override
   _MapOfAddressState createState() => _MapOfAddressState();
@@ -26,17 +22,18 @@ class MapOfAddress extends StatefulWidget {
 
 class _MapOfAddressState extends State<MapOfAddress> {
   Completer<GoogleMapController> _controller = Completer();
+  MarkerId markerId = MarkerId("Address");
 
   //snap to house address if change is detected
   @override
   void initState() {
     super.initState();
-    widget.addressTarget.addListener(snapToAddress);
+    JobForm.addressCoordinates.addListener(snapToAddress);
   }
 
   @override
   void dispose() {
-    widget.addressTarget.removeListener(snapToAddress);
+    JobForm.addressCoordinates.removeListener(snapToAddress);
     super.dispose();
   }
 
@@ -50,6 +47,12 @@ class _MapOfAddressState extends State<MapOfAddress> {
         //and save myself the hassle of manually snapping to the location
         //like I am doing above with the listeners
         GoogleMap(
+          //edit so it works with a sliver app bar
+          gestureRecognizers: [
+            Factory<OneSequenceGestureRecognizer>(
+              () => EagerGestureRecognizer(),
+            ),
+          ].toSet(),
           //NOTE: for our purposes no other modes show enough info
           mapType: MapType.hybrid,
           //tools
@@ -73,14 +76,20 @@ class _MapOfAddressState extends State<MapOfAddress> {
           initialCameraPosition: defaultCameraPosition(),
           onMapCreated: (GoogleMapController controller) {
             _controller.complete(controller);
+            controller.showMarkerInfoWindow(markerId);
           },
           //location marker
           markers: {
             Marker(
-              markerId: MarkerId("Address"),
+              markerId: markerId,
               flat: false, //map manipulation doesn't manipulate it
-              position: widget.addressTarget.value,
-            )
+              position: JobForm.addressCoordinates.value,
+              visible: true,
+              infoWindow: InfoWindow(
+                title: JobForm.clientAddress,
+                snippet:  JobForm.clientCity + ", " + JobForm.clientState,
+              ),
+            ),
           },
         ),
         Positioned(
@@ -105,7 +114,7 @@ class _MapOfAddressState extends State<MapOfAddress> {
 
   defaultCameraPosition() {
     return CameraPosition(
-      target: widget.addressTarget.value,
+      target: JobForm.addressCoordinates.value,
       //TODO: determine tight zoom based on the size of the property at these coordinates
       //NOTE: currently this was select to show entirety of most houses
       //on and S10 through experimentation
