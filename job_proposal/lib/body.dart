@@ -1,6 +1,11 @@
 //flutter
 import 'package:flutter/material.dart';
 
+//plugin
+import 'package:job_proposal/header/helper.dart';
+import 'package:job_proposal/main.dart';
+import 'package:job_proposal/utils/dateTimePicker/field.dart';
+
 //internal
 import 'package:job_proposal/utils/goldenRatio.dart';
 import 'package:job_proposal/data/structs.dart';
@@ -26,7 +31,7 @@ class FormBody extends StatelessWidget {
   final ClientData clientData;
 
   @override
-  Widget build(BuildContext context) {    
+  Widget build(BuildContext context) {
     //create app bar
     Widget sliverAppBar = HeaderSliver(
       statusBarHeight: statusBarHeight,
@@ -42,6 +47,63 @@ class FormBody extends StatelessWidget {
       bottomAppBarHeight: appBarHeight,
       //data
       clientData: clientData,
+    );
+
+    //generate group widgets
+    List<Widget> tasks = new List<Widget>();
+    /*
+    for (int i = 0; i < doseGroups.length; i++) {
+      groups.add(
+        DoseGroup(
+          group: doseGroups[i],
+          doseIDtoActiveDoseVN: doseIDtoActiveDoseVN,
+          lastGroup: i == (doseGroups.length - 1),
+          theSelectedDateTime: theSelectedDateTime,
+          lastDateTime: lastDateTime,
+          otherCloseOnToggle: othersCloseOnToggle,
+          autoScrollController: widget.autoScrollController,
+        ),
+      );
+    }*/
+
+    Widget dueDateSelector = SliverToBoxAdapter(
+      child: CustomDateTimePicker(),
+    );
+
+    Widget submitButton = SliverToBoxAdapter(
+      child: Center(
+        child: AnimatedBuilder(
+          animation: JobForm.isOrder,
+          builder: (context, child) {
+            String formAction =
+                JobForm.isOrder.value ? "Order Receipt" : "Job Proposal";
+            return RaisedButton(
+              color: Theme.of(context).accentColor,
+              child: Text(
+                "Send " + formAction,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              onPressed: () {
+                if (tasks.length == 0) {
+                  visualPrint(
+                    context,
+                    "Must add atleast 1 task\nBefore Sending The " + formAction,
+                  );
+                } else {
+                  visualPrint(
+                    context,
+                    "Sending " + formAction + "...",
+                  );
+                }
+              },
+            );
+          },
+        ),
+      ),
     );
 
     //create filler for when there are no items
@@ -62,15 +124,9 @@ class FormBody extends StatelessWidget {
     //combine slivers
     List<Widget> slivers = new List<Widget>();
     slivers.add(sliverAppBar);
-    /*
-    slivers.add(
-      SliverToBoxAdapter(
-        child: Container(
-          height: entireScreenHeight * 2,
-        ),
-      ),
-    );
-    */
+    slivers.addAll(tasks);
+    slivers.add(dueDateSelector);
+    slivers.add(submitButton);
     slivers.add(fillRemainingSliver);
 
     //return
@@ -82,25 +138,3 @@ class FormBody extends StatelessWidget {
     );
   }
 }
-
-/*
-    //generate group widgets
-    List<Widget> groups = new List<Widget>();
-    for (int i = 0; i < doseGroups.length; i++) {
-      groups.add(
-        DoseGroup(
-          group: doseGroups[i],
-          doseIDtoActiveDoseVN: doseIDtoActiveDoseVN,
-          lastGroup: i == (doseGroups.length - 1),
-          theSelectedDateTime: theSelectedDateTime,
-          lastDateTime: lastDateTime,
-          otherCloseOnToggle: othersCloseOnToggle,
-          autoScrollController: widget.autoScrollController,
-        ),
-      );
-    }
-
-    
-    slivers.add(addDoseBox);
-    slivers.addAll(groups);
-    */
