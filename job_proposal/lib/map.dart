@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 //plugins
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:job_proposal/data/structs.dart';
+import 'package:job_proposal/main.dart';
 
 //NOTE: we assume the address contain latidue and longitude values
 class MapOfAddress extends StatefulWidget {
@@ -25,25 +26,36 @@ class MapOfAddress extends StatefulWidget {
 class _MapOfAddressState extends State<MapOfAddress> {
   final MarkerId markerId = MarkerId("Address");
 
-  Completer<GoogleMapController> _controller = Completer();
+  //completes after map init
+  Completer<GoogleMapController> completer;
+  //grabed after completer completes
+  GoogleMapController mapController;
+  //initialized below
   ValueNotifier<int> selectedAddressIndex;
+
+  //open info window and refocus when address changes
+  focusOnNewAddress() {
+    showInfoWindowForSelectedAddress();
+    snapToSelectedAddress();
+  }
 
   @override
   void initState() {
     super.initState();
 
-    //init notifier
+    //inits
+    completer = Completer<GoogleMapController>();
     selectedAddressIndex = new ValueNotifier<int>(
       widget.clientData.primaryClientAddressIndex,
     );
 
     //upon new address selection update as needed
-    selectedAddressIndex.addListener(snapToAddress);
+    selectedAddressIndex.addListener(focusOnNewAddress);
   }
 
   @override
   void dispose() {
-    selectedAddressIndex.removeListener(snapToAddress);
+    selectedAddressIndex.removeListener(focusOnNewAddress);
     super.dispose();
   }
 
@@ -53,7 +65,7 @@ class _MapOfAddressState extends State<MapOfAddress> {
     return Stack(
       children: <Widget>[
         //TODO: when the target changes this should only regenarate the markers
-        //I may just be able to regenerate it 
+        //I may just be able to regenerate it
         //and save myself the hassle of manually snapping to the location
         //like I am doing above with the listeners
         GoogleMap(
@@ -75,8 +87,7 @@ class _MapOfAddressState extends State<MapOfAddress> {
           rotateGesturesEnabled: true,
           zoomGesturesEnabled: true,
           tiltGesturesEnabled: true,
-          scrollGesturesEnabled:
-              true, //address is plugging in and selected in other ways
+          scrollGesturesEnabled: true,
           //details
           trafficEnabled: true,
           buildingsEnabled: true,
@@ -85,22 +96,41 @@ class _MapOfAddressState extends State<MapOfAddress> {
           //requried
           initialCameraPosition: defaultCameraPosition(),
           onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-            controller.showMarkerInfoWindow(markerId);
+            completer.complete(controller);
+            mapController = controller;
+            showInfoWindowForSelectedAddress();
           },
           //location marker
-          markers: {
-            Marker(
-              markerId: markerId,
-              flat: false, //map manipulation doesn't manipulate it
-              position: getCurrentAddress().latLng,
-              visible: true,
-              infoWindow: InfoWindow(
-                title: getCurrentAddress().address,
-                snippet:  getCurrentAddress().city + ", " + getCurrentAddress().state,
-              ),
-            ),
-          },
+          markers: List.generate(
+            widget.clientData.addresses.length,
+            (int index) {
+              AddressData thisAddress = widget.clientData.addresses[index];
+              return Marker(
+                //guaranteed unique
+                markerId: getMarkerID(thisAddress),
+                //map manipulation doesn't manipulate it
+                //it isn't painted on the map, its on the map
+                flat: false,
+                //on tap switch to avoid misconceptions
+                //only one label will be visible at a time
+                //the label is essentially the seleted address initially
+                //so it should stay the selected address throughout
+                onTap: (){
+                  selectedAddressIndex.value = index;
+                }, 
+                //position
+                position: thisAddress.latLng,
+                //bring ups address switching options
+                infoWindow: InfoWindow(
+                  title: thisAddress.address,
+                  snippet: thisAddress.city + ", " + thisAddress.state,
+                  onTap: () {
+                    changeAddressSelected(context);
+                  },
+                ),
+              );
+            },
+          ).toSet(),
         ),
         Positioned(
           top: 0,
@@ -122,10 +152,54 @@ class _MapOfAddressState extends State<MapOfAddress> {
     );
   }
 
-  AddressData getCurrentAddress(){
-    return widget.clientData.addresses[
-      selectedAddressIndex.value
-    ];
+  Future changeAddressSelected(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: widget.clientData.addresses.length,
+          itemBuilder: (context, index) {
+            AddressData thisAddress = widget.clientData.addresses[index];
+            bool selectedIndex = index == selectedAddressIndex.value;
+            FontWeight weight =
+                selectedIndex ? FontWeight.bold : FontWeight.normal;
+            return ListTile(
+              onTap: () {
+                //update value
+                selectedAddressIndex.value = index;
+
+                //remove modal
+                Navigator.of(context).pop();
+              },
+              title: Text(
+                thisAddress.address,
+                style: TextStyle(
+                  fontWeight: weight,
+                  color: Colors.black,
+                ),
+              ),
+              trailing: Text(
+                thisAddress.city + ", " + thisAddress.state,
+                style: TextStyle(
+                  fontWeight: weight,
+                  color: ThemeData.dark().cardColor,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  //TODO: cover case where for some reason an duplicate address is added
+  MarkerId getMarkerID(AddressData address) {
+    return MarkerId(address.latLng.toString());
+  }
+
+  AddressData getCurrentAddress() {
+    return widget.clientData.addresses[selectedAddressIndex.value];
   }
 
   defaultCameraPosition() {
@@ -139,12 +213,20 @@ class _MapOfAddressState extends State<MapOfAddress> {
     );
   }
 
-  snapToAddress() {
+  showInfoWindowForSelectedAddress() {
+    mapController.showMarkerInfoWindow(
+      getMarkerID(
+        widget.clientData.addresses[selectedAddressIndex.value],
+      ),
+    );
+  }
+
+  snapToSelectedAddress() {
     toAddress(withAnimation: false);
   }
 
   toAddress({bool withAnimation: true}) async {
-    final GoogleMapController controller = await _controller.future;
+    final GoogleMapController controller = await completer.future;
     CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
       defaultCameraPosition(),
     );
