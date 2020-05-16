@@ -8,32 +8,42 @@ import 'package:flutter/material.dart';
 
 //plugins
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:job_proposal/main.dart';
+import 'package:job_proposal/data/structs.dart';
 
-//TODO: grab the latitude and longitude using an API that returns it for each address
-//TODO: if the address changes to something with no latitude and longitude then dont show the map
-//NOTE: these two changes are primarily for the widget that wraps the map
+//NOTE: we assume the address contain latidue and longitude values
 class MapOfAddress extends StatefulWidget {
-  const MapOfAddress();
+  MapOfAddress({
+    @required this.clientData,
+  });
+
+  final ClientData clientData;
 
   @override
   _MapOfAddressState createState() => _MapOfAddressState();
 }
 
 class _MapOfAddressState extends State<MapOfAddress> {
-  Completer<GoogleMapController> _controller = Completer();
-  MarkerId markerId = MarkerId("Address");
+  final MarkerId markerId = MarkerId("Address");
 
-  //snap to house address if change is detected
+  Completer<GoogleMapController> _controller = Completer();
+  ValueNotifier<int> selectedAddressIndex;
+
   @override
   void initState() {
     super.initState();
-    JobForm.addressCoordinates.addListener(snapToAddress);
+
+    //init notifier
+    selectedAddressIndex = new ValueNotifier<int>(
+      widget.clientData.primaryClientAddressIndex,
+    );
+
+    //upon new address selection update as needed
+    selectedAddressIndex.addListener(snapToAddress);
   }
 
   @override
   void dispose() {
-    JobForm.addressCoordinates.removeListener(snapToAddress);
+    selectedAddressIndex.removeListener(snapToAddress);
     super.dispose();
   }
 
@@ -83,11 +93,11 @@ class _MapOfAddressState extends State<MapOfAddress> {
             Marker(
               markerId: markerId,
               flat: false, //map manipulation doesn't manipulate it
-              position: JobForm.addressCoordinates.value,
+              position: getCurrentAddress().latLng,
               visible: true,
               infoWindow: InfoWindow(
-                title: JobForm.clientAddress,
-                snippet:  JobForm.clientCity + ", " + JobForm.clientState,
+                title: getCurrentAddress().address,
+                snippet:  getCurrentAddress().city + ", " + getCurrentAddress().state,
               ),
             ),
           },
@@ -112,9 +122,15 @@ class _MapOfAddressState extends State<MapOfAddress> {
     );
   }
 
+  AddressData getCurrentAddress(){
+    return widget.clientData.addresses[
+      selectedAddressIndex.value
+    ];
+  }
+
   defaultCameraPosition() {
     return CameraPosition(
-      target: JobForm.addressCoordinates.value,
+      target: getCurrentAddress().latLng,
       //TODO: determine tight zoom based on the size of the property at these coordinates
       //NOTE: currently this was select to show entirety of most houses
       //on and S10 through experimentation

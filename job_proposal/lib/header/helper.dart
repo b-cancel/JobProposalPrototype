@@ -1,4 +1,7 @@
+//flutter
 import 'package:flutter/material.dart';
+
+//internal
 import 'package:job_proposal/main.dart';
 
 //debug function
@@ -13,8 +16,11 @@ visualPrint(BuildContext context, String text) {
 //widgets
 class SliverTopAppBar extends StatelessWidget {
   const SliverTopAppBar({
+    @required this.clientName,
     Key key,
   }) : super(key: key);
+
+  final String clientName;
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +40,7 @@ class SliverTopAppBar extends StatelessWidget {
             ),
           ),
           Text(
-            //TODO: grab customer name as parameter
-            //NOTE: this parameter should not be changeable
-            //given the current flow (making it changeable can be added later)
-            JobForm.clientName,
+            clientName,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,

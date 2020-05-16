@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 
 //plugins
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 //internal
 import 'package:job_proposal/body.dart';
+import 'package:job_proposal/data/imaginaryData.dart';
+import 'package:job_proposal/data/structs.dart';
 
 //colors extracted form website
 Color lbGreen = Color(0xFF00AE65);
@@ -27,23 +28,23 @@ class MyApp extends StatelessWidget {
         accentColor: lbGreen,
       ),
       //NOTE: seperate [JobForm] so we can use mediaquery to grab status bar height
-      home: JobForm(),
+      home: JobForm(
+        //TODO: actually grab names and addresses
+        clientData: imaginaryClientData,
+      ),
     );
   }
 }
 
 class JobForm extends StatelessWidget{
-  static final ValueNotifier<bool> isOrder = ValueNotifier<bool>(false);
+  JobForm({
+    @required this.clientData,
+  });
 
-  //TODO: convert into parameters upon integration with LawnBuddy
-  //TODO: and allow each to be changed without form reset
-  static final String clientName = "Bryan Cancel";
-  static final String clientAddress = "1311 Rocotillo Ln";
-  static final String clientCity = "Edinburg";
-  static final String clientState = "TX";
-  static final ValueNotifier<LatLng> addressCoordinates = ValueNotifier<LatLng>(
-    LatLng(26.278420, -98.180090),
-  );
+  final ClientData clientData;
+
+  //we assume proprosal since the is the main goal
+  static final ValueNotifier<bool> isOrder = ValueNotifier<bool>(false);
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +61,8 @@ class JobForm extends StatelessWidget{
               statusBarHeight: MediaQuery.of(context).padding.top,
               entireScreenHeight: MediaQuery.of(context).size.height,
               toggleButtonHeight: toggleButtonHeight,
+              //data
+              clientData: clientData,
             ),
           ),
           Material(
@@ -67,7 +70,7 @@ class JobForm extends StatelessWidget{
             child: InkWell(
               //order <-> proposal toggle
               onTap: () {
-                isOrder.value = !isOrder.value;
+                JobForm.isOrder.value = !JobForm.isOrder.value;
               },
               child: Container(
                 height: toggleButtonHeight,
@@ -97,9 +100,9 @@ class JobForm extends StatelessWidget{
                         fontSize: 16,
                       ),
                       child: AnimatedBuilder(
-                        animation: isOrder,
+                        animation: JobForm.isOrder,
                         builder: (context, child) {
-                          if (isOrder.value) {
+                          if (JobForm.isOrder.value) {
                             return Text("Change Into A Proposal");
                           } else {
                             return Text("Change Into An Order");

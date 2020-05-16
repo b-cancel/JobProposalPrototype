@@ -1,8 +1,9 @@
 //flutter
 import 'package:flutter/material.dart';
-import 'package:job_proposal/header/helper.dart';
 
 //internal
+import 'package:job_proposal/data/structs.dart';
+import 'package:job_proposal/header/helper.dart';
 import 'package:job_proposal/main.dart';
 import 'package:job_proposal/map.dart';
 
@@ -14,18 +15,17 @@ class HeaderSliver extends StatelessWidget {
     @required this.topAppBarHeight,
     @required this.accentHeight,
     @required this.bottomAppBarHeight,
+    //data
+    @required this.clientData,
   }) : super(key: key);
 
   final double statusBarHeight;
   final double topAppBarHeight;
   final double accentHeight;
   final double bottomAppBarHeight;
+  //data
+  final ClientData clientData;
 
-  //TODO: this isn't working as intended, work on this later if needed
-  //map shouldn't reload often to avoid issues
-  final Widget constMapOfAddress = const MapOfAddress();
-
-  //build
   @override
   Widget build(BuildContext context) {
     //the bottom bar is included here
@@ -111,11 +111,15 @@ class HeaderSliver extends StatelessWidget {
                         MediaQuery.of(context).size.width,
                         topAppBarHeight,
                       ),
-                      child: SliverTopAppBar(),
+                      child: SliverTopAppBar(
+                        clientName: clientData.name,
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: constMapOfAddress,
+                    child: MapOfAddress(
+                      clientData: clientData,
+                    ),
                   ),
                 ],
               ),

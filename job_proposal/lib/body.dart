@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 
 //internal
-import 'package:job_proposal/header/header.dart';
-import 'package:job_proposal/main.dart';
 import 'package:job_proposal/utils/goldenRatio.dart';
+import 'package:job_proposal/data/structs.dart';
+import 'package:job_proposal/header/header.dart';
 
 //widget
 class FormBody extends StatelessWidget {
@@ -13,6 +13,8 @@ class FormBody extends StatelessWidget {
     @required this.statusBarHeight,
     @required this.entireScreenHeight,
     @required this.toggleButtonHeight,
+    //data
+    @required this.clientData,
   });
 
   //values used to get nice looking ratio for header sliver
@@ -20,6 +22,8 @@ class FormBody extends StatelessWidget {
   final double statusBarHeight;
   final double toggleButtonHeight;
   final double entireScreenHeight;
+  //data
+  final ClientData clientData;
 
   @override
   Widget build(BuildContext context) {    
@@ -36,6 +40,8 @@ class FormBody extends StatelessWidget {
         entireScreenHeight - statusBarHeight - appBarHeight,
       ),
       bottomAppBarHeight: appBarHeight,
+      //data
+      clientData: clientData,
     );
 
     //create filler for when there are no items
