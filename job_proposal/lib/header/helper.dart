@@ -8,6 +8,7 @@ import 'package:job_proposal/main.dart';
 visualPrint(BuildContext context, String text) {
   Scaffold.of(context).showSnackBar(
     SnackBar(
+      behavior: SnackBarBehavior.floating,
       content: Text(text),
     ),
   );

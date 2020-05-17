@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 import 'package:flutter_rounded_date_picker/src/material_rounded_year_picker_style.dart';
 
-Future<DateTime> selectDateTime(
+selectDateTimeAndroid(
   BuildContext context, 
   DateTime initialDate,
   DateTime firstDate,

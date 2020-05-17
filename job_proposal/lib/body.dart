@@ -11,8 +11,8 @@ import 'package:job_proposal/utils/goldenRatio.dart';
 import 'package:job_proposal/data/structs.dart';
 import 'package:job_proposal/header/header.dart';
 
-//widget
-class FormBody extends StatelessWidget {
+//NOTE: must be stateful so the valuenotifiers work as desried
+class FormBody extends StatefulWidget {
   FormBody({
     this.appBarHeight: 56, //set by flutter as default
     @required this.statusBarHeight,
@@ -30,23 +30,43 @@ class FormBody extends StatelessWidget {
   //data
   final ClientData clientData;
 
+  //due date required before
+  static DateTime nullDateTime = DateTime(1900);
+
+  @override
+  _FormBodyState createState() => _FormBodyState();
+}
+
+class _FormBodyState extends State<FormBody> {
+  final ScrollController scrollController = ScrollController();
+
+  final ValueNotifier<DateTime> dueDateSelected = ValueNotifier<DateTime>(
+    FormBody.nullDateTime,
+  );
+
+  final ValueNotifier<bool> showError = ValueNotifier<bool>(
+    false,
+  );
+
   @override
   Widget build(BuildContext context) {
     //create app bar
     Widget sliverAppBar = HeaderSliver(
-      statusBarHeight: statusBarHeight,
-      topAppBarHeight: appBarHeight,
+      statusBarHeight: widget.statusBarHeight,
+      topAppBarHeight: widget.appBarHeight,
       //includes the bottom app bar
       //it doesn't feel like the statusBarHeight is part of the app in terms of visual ratio
       //so I don't count it when doing the ratio math
       //the top app bar KINDA doesn't feel like a part of it since it blends with the status bar
       //so I don't count it either
       accentHeight: toGoldenRatioBig(
-        entireScreenHeight - statusBarHeight - appBarHeight,
+        widget.entireScreenHeight -
+            widget.statusBarHeight -
+            widget.appBarHeight,
       ),
-      bottomAppBarHeight: appBarHeight,
+      bottomAppBarHeight: widget.appBarHeight,
       //data
-      clientData: clientData,
+      clientData: widget.clientData,
     );
 
     //generate group widgets
@@ -67,42 +87,18 @@ class FormBody extends StatelessWidget {
     }*/
 
     Widget dueDateSelector = SliverToBoxAdapter(
-      child: CustomDateTimePicker(),
+      child: CustomDateTimePicker(
+        dueDateSelected: dueDateSelected,
+        showError: showError,
+      ),
     );
 
     Widget submitButton = SliverToBoxAdapter(
-      child: Center(
-        child: AnimatedBuilder(
-          animation: JobForm.isOrder,
-          builder: (context, child) {
-            String formAction =
-                JobForm.isOrder.value ? "Order Receipt" : "Job Proposal";
-            return RaisedButton(
-              color: Theme.of(context).accentColor,
-              child: Text(
-                "Send " + formAction,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              onPressed: () {
-                if (tasks.length == 0) {
-                  visualPrint(
-                    context,
-                    "Must add atleast 1 task\nBefore Sending The " + formAction,
-                  );
-                } else {
-                  visualPrint(
-                    context,
-                    "Sending " + formAction + "...",
-                  );
-                }
-              },
-            );
-          },
-        ),
+      child: SubmitButton(
+        hasTasks: tasks.length > 0,
+        scrollController: scrollController,
+        dueDateSelected: dueDateSelected,
+        showError: showError,
       ),
     );
 
@@ -110,15 +106,9 @@ class FormBody extends StatelessWidget {
     Widget fillRemainingSliver = SliverFillRemaining(
       hasScrollBody: false, //it should be as small as possible
       fillOverscroll: true, //only if above is false
-      child: Center(
-        child: Text(
-          "Add a Task\nyour tasks will show up here",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: ThemeData.dark().cardColor,
-          ),
-        ),
-      ),
+      //if they try to send without adding a task
+      //the snackbar will tell them they need to add one
+      child: Container(),
     );
 
     //combine slivers
@@ -133,8 +123,114 @@ class FormBody extends StatelessWidget {
     //build
     return Container(
       child: CustomScrollView(
+        controller: scrollController,
         slivers: slivers,
       ),
     );
   }
+}
+
+class SubmitButton extends StatefulWidget {
+  const SubmitButton({
+    Key key,
+    @required this.hasTasks,
+    @required this.scrollController,
+    @required this.dueDateSelected,
+    @required this.showError,
+  }) : super(key: key);
+
+  final bool hasTasks;
+  final ScrollController scrollController;
+  final ValueNotifier<DateTime> dueDateSelected;
+  final ValueNotifier<bool> showError;
+
+  @override
+  _SubmitButtonState createState() => _SubmitButtonState();
+}
+
+class _SubmitButtonState extends State<SubmitButton> {
+  scrollToTopIfTrue() {
+    if (widget.showError.value) {
+      widget.scrollController.animateTo(
+        0,
+        //match default behavior
+        duration: kTabScrollDuration,
+        //specifically chosen to make it clear scroll is happening
+        //and slow down so the user understand what item we were scroll to
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  updateState() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //switch out button text
+    JobForm.isOrder.addListener(updateState);
+    //scroll to top if the user tries to submit with a due date
+    widget.showError.addListener(scrollToTopIfTrue);
+  }
+
+  @override
+  void dispose() {
+    JobForm.isOrder.removeListener(updateState);
+    widget.showError.removeListener(scrollToTopIfTrue);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String basicAction = "Sending The Job ";
+    String formAction = JobForm.isOrder.value ? "Order" : "Proposal";
+    return Center(
+      child: RaisedButton(
+        color: Theme.of(context).accentColor,
+        child: Text(
+          "Send Job " + formAction,
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        onPressed: () {
+          //if no date has been selected let it show as an error in the text field
+          if (isDateNull(widget.dueDateSelected.value)) {
+            print("Currently Showing Error: " +
+                widget.showError.value.toString());
+            widget.showError.value = true;
+          } else {
+            //date was selected, now just worry about tasks
+            if (widget.hasTasks) {
+              visualPrint(
+                context,
+                basicAction + formAction + "...",
+              );
+            } else {
+              visualPrint(
+                context,
+                "Must Add Atleast 1 Task\nBefore " + basicAction + formAction,
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+}
+
+//date == date isn't implemented or fails
+//so I just compare against their working to strings
+bool areDatesEqual(DateTime left, DateTime right) {
+  return (left.toString() == right.toString());
+}
+
+bool isDateNull(DateTime date) {
+  return areDatesEqual(date, FormBody.nullDateTime);
 }
