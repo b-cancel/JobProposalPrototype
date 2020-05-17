@@ -189,37 +189,42 @@ class _SubmitButtonState extends State<SubmitButton> {
     String basicAction = "Sending The Job ";
     String formAction = JobForm.isOrder.value ? "Order" : "Proposal";
     return Center(
-      child: RaisedButton(
-        color: Theme.of(context).accentColor,
-        child: Text(
-          "Send Job " + formAction,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: 16,
         ),
-        onPressed: () {
-          //if no date has been selected let it show as an error in the text field
-          if (isDateNull(widget.dueDateSelected.value)) {
-            print("Currently Showing Error: " +
-                widget.showError.value.toString());
-            widget.showError.value = true;
-          } else {
-            //date was selected, now just worry about tasks
-            if (widget.hasTasks) {
-              visualPrint(
-                context,
-                basicAction + formAction + "...",
-              );
+        child: RaisedButton(
+          color: Theme.of(context).accentColor,
+          child: Text(
+            "Send Job " + formAction,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          onPressed: () {
+            //if no date has been selected let it show as an error in the text field
+            if (isDateNull(widget.dueDateSelected.value)) {
+              print("Currently Showing Error: " +
+                  widget.showError.value.toString());
+              widget.showError.value = true;
             } else {
-              visualPrint(
-                context,
-                "Must Add Atleast 1 Task\nBefore " + basicAction + formAction,
-              );
+              //date was selected, now just worry about tasks
+              if (widget.hasTasks) {
+                visualPrint(
+                  context,
+                  basicAction + formAction + "...",
+                );
+              } else {
+                visualPrint(
+                  context,
+                  "Must Add Atleast 1 Task\nBefore " + basicAction + formAction,
+                );
+              }
             }
-          }
-        },
+          },
+        ),
       ),
     );
   }

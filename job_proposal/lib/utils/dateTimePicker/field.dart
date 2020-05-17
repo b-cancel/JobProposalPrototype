@@ -1,5 +1,12 @@
+//dart
+import 'dart:io' show Platform;
+
+//flutter
 import 'package:flutter/material.dart';
+
+//internal
 import 'package:job_proposal/main.dart';
+import 'package:job_proposal/utils/dateTimePicker/androidPicker.dart';
 import 'package:job_proposal/utils/dateTimePicker/iosPicker.dart';
 
 //widget
@@ -27,19 +34,18 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   TextEditingController textEditingController;
 
   //update the UI upon error detection
-  updateState(){
+  updateState() {
     print("Error is now: " + widget.showError.value.toString());
-    if(mounted){
+    if (mounted) {
       setState(() {});
     }
   }
 
   //update the text when the date changes
-  updateText(){
+  updateText() {
     //update text (we assume its valid)
-    textEditingController.text = ourDateTimeFormat(
-      widget.dueDateSelected.value
-    );
+    textEditingController.text =
+        ourDateTimeFormat(widget.dueDateSelected.value);
 
     //remove error
     widget.showError.value = false;
@@ -54,7 +60,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
       //a default is not beneficial
       //and might enforce bad habbits
       //of just not caring about the due date
-      text: "", 
+      text: "",
     );
     widget.dueDateSelected.addListener(updateText);
     widget.showError.addListener(updateState);
@@ -62,7 +68,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
 
   //dispose
   @override
-  void dispose() { 
+  void dispose() {
     textEditingController.dispose();
     widget.dueDateSelected.removeListener(updateText);
     widget.showError.removeListener(updateState);
@@ -82,24 +88,43 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
           TextField(
             controller: textEditingController,
             //on tap open up the selector
-            onTap: (){
-              //NOTE: this may or may not update the value notifier 
+            onTap: () {
+              //NOTE: this may or may not update the value notifier
               //that then updates everything else
-              selectDateTimeIOS(
-                context,
-                //give the user some time
-                //maybe they forgot to send the job
-                //and they want to add it in for their records
-                firstDate: DateTime.now().subtract(
-                  oneYear,
-                ), 
-                //anything else is clearly unrealistic
-                lastDate: DateTime.now().add(
-                  humanLifeTime,
-                ), 
-                //if null will default to DateTime.now()
-                selectedDate: widget.dueDateSelected,
-              );
+              if (Platform.isIOS) {
+                //TODO: remove the weird military time part of the picker
+                selectDateTimeIOS(
+                  context,
+                  //give the user some time
+                  //maybe they forgot to send the job
+                  //and they want to add it in for their records
+                  firstDate: DateTime.now().subtract(
+                    oneYear,
+                  ),
+                  //anything else is clearly unrealistic
+                  lastDate: DateTime.now().add(
+                    humanLifeTime,
+                  ),
+                  //if null will default to DateTime.now()
+                  selectedDate: widget.dueDateSelected,
+                );
+              } else {
+                selectDateTimeAndroid(
+                  context,
+                  //give the user some time
+                  //maybe they forgot to send the job
+                  //and they want to add it in for their records
+                  firstDate: DateTime.now().subtract(
+                    oneYear,
+                  ),
+                  //anything else is clearly unrealistic
+                  lastDate: DateTime.now().add(
+                    humanLifeTime,
+                  ),
+                  //if null will default to DateTime.now()
+                  selectedDate: widget.dueDateSelected,
+                );
+              }
             },
             //we are updating it with the controller
             readOnly: true,
@@ -195,7 +220,7 @@ List<String> idToMonth = [
 ];
 
 //"weekday, month day, year at 0:00pm";
-String ourDateTimeFormat(DateTime dateTime){
+String ourDateTimeFormat(DateTime dateTime) {
   //everything except time
   String dateString = idToWeekday[dateTime.weekday] + ", ";
   dateString += idToMonth[dateTime.month] + " ";
@@ -206,17 +231,17 @@ String ourDateTimeFormat(DateTime dateTime){
   //and add am pm
   int hour = dateTime.hour;
   String suffix = " AM";
-  if(hour == 0){
+  if (hour == 0) {
     suffix = " MID";
   }
-  if(hour == 12){
+  if (hour == 12) {
     suffix = " NOON";
   }
-  if(hour > 12){
+  if (hour > 12) {
     hour -= 12;
     suffix = " PM";
   }
-  
+
   String minutes = dateTime.minute.toString();
   bool add0 = minutes.length != 2;
 

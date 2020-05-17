@@ -1,41 +1,58 @@
-
+//flutter
 import 'package:flutter/material.dart';
+
+//plugin
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 import 'package:flutter_rounded_date_picker/src/material_rounded_year_picker_style.dart';
 
+//internal
+import 'package:job_proposal/body.dart';
+import 'package:job_proposal/main.dart';
+
+//widget
+MaterialColor getMaterialColor(Color color){
+  return MaterialColor(
+    0xFF + color.red + color.green + color.blue,
+    getColorMap(color.red, color.green, color.blue),
+  );
+}
+
+Map<int, Color> getColorMap(int red, int green, int blue){
+  Color theColor = Color.fromRGBO(red, green, blue, 1);
+  return {
+    50: theColor,
+    100: theColor,
+    200: theColor,
+    300: theColor,
+    400: theColor,
+    500: theColor,
+    600: theColor,
+    700: theColor,
+    800: theColor,
+    900: theColor,
+  };
+}
+
 selectDateTimeAndroid(
   BuildContext context, 
-  DateTime initialDate,
-  DateTime firstDate,
-  DateTime lastDate,
-  { //options
+  {
+    @required DateTime firstDate,
+    @required DateTime lastDate,
+    @required ValueNotifier<DateTime> selectedDate,
     double borderRadius: 0,
     bool barrierDismissible: true,
   }
 ) async {
-  Map<int, Color> color = {
-    50: Color.fromRGBO(30, 30, 30, 1),
-    100: Color.fromRGBO(30, 30, 30, 1),
-    200: Color.fromRGBO(30, 30, 30, 1),
-    300: Color.fromRGBO(30, 30, 30, 1),
-    400: Color.fromRGBO(30, 30, 30, 1),
-    500: Color.fromRGBO(30, 30, 30, 1),
-    600: Color.fromRGBO(30, 30, 30, 1),
-    700: Color.fromRGBO(30, 30, 30, 1),
-    800: Color.fromRGBO(30, 30, 30, 1),
-    900: Color.fromRGBO(30, 30, 30, 1),
-  };
-
   //the theme for both pop ups
   ThemeData themeForPopUps = ThemeData(
     //color of buttons
     //A.K.A. ThemeData.dark().scaffoldBackgroundColor,
     //A.K.A. Color(0xFF303030),
-    primarySwatch: MaterialColor(0xFF303030, color),
+    primarySwatch: getMaterialColor(lbGreen),
     //circle highlight
     accentColor: Theme.of(context).accentColor,
     //banner color
-    primaryColor: ThemeData.dark().scaffoldBackgroundColor,
+    primaryColor: Theme.of(context).accentColor,
     //color of text inside circle highlight
     /*
     accentTextTheme: TextTheme(
@@ -46,12 +63,23 @@ selectDateTimeAndroid(
     */
   );
 
-  //updated by everything down the chain
-  ValueNotifier<DateTime> selectedDate = new ValueNotifier<DateTime>(initialDate);
+  //set actual date time
+  DateTime initialDateTime = selectedDate.value;
+  if (isDateNull(initialDateTime)) {
+    initialDateTime = DateTime.now();
+  }
 
   //pick date
   DateTime datePicked = await showRoundedDatePicker(
     context: context,
+    //options
+    initialDatePickerMode: DatePickerMode.day,
+    barrierDismissible: barrierDismissible,
+    borderRadius: borderRadius,
+    //dates
+    initialDate: initialDateTime,
+    firstDate: firstDate,
+    lastDate: lastDate,
     //styling
     description: "Due Date",
     theme: themeForPopUps,
@@ -67,28 +95,11 @@ selectDateTimeAndroid(
         fontSize: 24,
       ),
     ),
-    //dates
-    initialDate: selectedDate.value,
-    firstDate: firstDate,
-    lastDate: lastDate,
-    /*
-    Color background, 
-    String textNegativeButton, 
-    String textPositiveButton, 
-    String textActionButton, 
-    void Function() onTapActionButton, 
-    MaterialRoundedDatePickerStyle styleDatePicker, 
-    MaterialRoundedYearPickerStyle styleYearPicker, 
-    List<String> customWeekDays, 
-    Widget Function(DateTime, bool, 
-    bool, TextStyle) builderDay, 
-    List<DateTime> listDateDisabled, 
-    bool Function(DateTime, bool) onTapDay
-    */
-    //options
-    initialDatePickerMode: DatePickerMode.day,
-    barrierDismissible: barrierDismissible,
-    borderRadius: borderRadius,
+    //alternative option button
+    textActionButton: "Select Time",
+    onTapActionButton: (){
+
+    },
   );
 
 
@@ -143,5 +154,4 @@ selectDateTimeAndroid(
     }
     */
   } //use last date and time
-  else return initialDate;
 }

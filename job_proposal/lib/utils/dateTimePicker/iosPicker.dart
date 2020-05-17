@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:job_proposal/body.dart';
+import 'package:job_proposal/main.dart';
 
 selectDateTimeIOS(
   BuildContext context, {
@@ -20,6 +21,13 @@ selectDateTimeIOS(
     context,
     locale: DateTimePickerLocale.en_us,
     pickerMode: DateTimePickerMode.datetime,
+    pickerTheme: DateTimePickerTheme(
+      confirmTextStyle: TextStyle(
+        color: lbGreen,
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+    ),
     //EEE and MMM for short
     dateFormat: "EEE, MMMM d, yyyy at H:mm",
     //dates
