@@ -71,20 +71,13 @@ selectDateTimeAndroid(
   //we grab the date returned to determine if the user
   //either agreed to keep the change
   //or decided to revert
-  DateTime result = await changeDateTime(
+  changeDateTime(
     context,
+    essentiallyReturn: selectedDate,
     dtWithLastSavedTime: dtToUpdate,
     firstDate: firstDate,
     lastDate: lastDate,
   );
-
-  //if date picked is different that the intial
-  //ONLY THEN do we care about the newDateTime
-  //otherwise the changes where made but then canceled
-  if (result != null) {
-    //select the date and have the change reflected in the UI
-    selectedDate.value;
-  }
 }
 
 //TODO: more consistent behavior
@@ -107,12 +100,19 @@ selectDateTimeAndroid(
 //because the user may have canceled their selection
 
 //date picker than lets you change time
-Future<DateTime> changeDateTime(
+//TODO: fix issues or switch plugins
+//if you use the change year UI
+//and then you pick a time
+//without first tapping a day
+//the year change will be lost
+//this is probably never if rarely going to be an issue
+changeDateTime(
   BuildContext context, {
   //has the right time
-  ValueNotifier<DateTime> dtWithLastSavedTime,
-  DateTime firstDate,
-  DateTime lastDate,
+  @required ValueNotifier<DateTime> essentiallyReturn,
+  @required ValueNotifier<DateTime> dtWithLastSavedTime,
+  @required DateTime firstDate,
+  @required DateTime lastDate,
   //other
   double borderRadius: 0,
   bool barrierDismissible: true,
@@ -167,8 +167,11 @@ Future<DateTime> changeDateTime(
       Navigator.of(context).pop();
 
       //call the next picker
-      return await changeTime(
+      changeTime(
         context,
+        essentiallyReturn: essentiallyReturn,
+        //NOTE: the right year may not be passed here
+        //see TODO above this function for explanation
         dtWithLastSavedDate: dtWithLastSavedTime,
         firstDate: firstDate,
         lastDate: lastDate,
@@ -184,16 +187,26 @@ Future<DateTime> changeDateTime(
   //IF the user didn't cancel operations
 
   //null if the user canceled operations
-  return result;
+  if(result != null){ //NOTE: the picker only updates the date
+    //but in doing so it resets the time
+    //so combine the two values
+    //NOTE: you might be tempted to just use dtWithLastSavedTime
+    //but that isn't updated when the year is changed from the change year UI
+    essentiallyReturn.value = getDateTimeFrom2(
+      hasTime: dtWithLastSavedTime.value,
+      hasDate: result,
+    );
+  }
 }
 
 //time picker that lets you change date
-Future<DateTime> changeTime(
+changeTime(
   BuildContext context, {
   //has the right date
-  ValueNotifier<DateTime> dtWithLastSavedDate,
-  DateTime firstDate,
-  DateTime lastDate,
+  @required ValueNotifier<DateTime> essentiallyReturn,
+  @required ValueNotifier<DateTime> dtWithLastSavedDate,
+  @required DateTime firstDate,
+  @required DateTime lastDate,
   //other
   double borderRadius: 0,
   bool barrierDismissible: true,
@@ -239,11 +252,9 @@ Future<DateTime> changeTime(
   //IF the user didn't cancel operations
 
   //null if the user canceled operations
-  if (selectedTime == null) {
-    return null;
-  } else {
+  if (selectedTime != null){
     //merge the new time with the old date
-    return getDateTimeFrom2(
+    essentiallyReturn.value = getDateTimeFrom2(
       hasDate: dtWithLastSavedDate.value,
       //we must full with dummy data given postitional parameters
       hasTime: DateTime(

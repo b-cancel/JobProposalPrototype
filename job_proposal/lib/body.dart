@@ -206,8 +206,6 @@ class _SubmitButtonState extends State<SubmitButton> {
           onPressed: () {
             //if no date has been selected let it show as an error in the text field
             if (isDateNull(widget.dueDateSelected.value)) {
-              print("Currently Showing Error: " +
-                  widget.showError.value.toString());
               widget.showError.value = true;
             } else {
               //date was selected, now just worry about tasks

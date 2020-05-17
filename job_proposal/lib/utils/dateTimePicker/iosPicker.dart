@@ -37,11 +37,7 @@ selectDateTimeIOS(
     //function
     onConfirm: (DateTime newDateTime, List<int> someNumbers){
       if(areDatesEqual(newDateTime, initialDateTime) == false){
-        print("updating date time");
         selectedDate.value = newDateTime;
-      }
-      else{
-        print("not updating date time");
       }
     },
   );

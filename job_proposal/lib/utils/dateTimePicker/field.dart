@@ -45,7 +45,6 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
 
   //update the UI upon error detection
   updateState() {
-    print("Error is now: " + widget.showError.value.toString());
     if (mounted) {
       setState(() {});
     }
@@ -89,7 +88,6 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   //build
   @override
   Widget build(BuildContext context) {
-    print("in build error is: " + widget.showError.value.toString());
     return TextField(
       controller: textEditingController,
       //on tap open up the selector
@@ -212,17 +210,20 @@ List<String> idToMonth = [
 
 //"weekday, month day, year at 0:00pm";
 String ourDateTimeFormat(DateTime dateTime) {
-  String dateTimeString = idToWeekday[dateTime.weekday] + ", ";
-  dateTimeString += idToMonth[dateTime.month] + " ";
-  dateTimeString += dateTime.day.toString() + ", ";
-  dateTimeString += dateTime.year.toString() + " at ";
+  String dateTimeString = ourDateFormat(dateTime);
   dateTimeString += ourTimeFormat(dateTime);
   return dateTimeString;
 }
 
-String ourTimeFormat(DateTime dateTime){
-  String timeString = "";
+String ourDateFormat(DateTime dateTime){
+  String dateString = idToWeekday[dateTime.weekday] + ", ";
+  dateString += idToMonth[dateTime.month] + " ";
+  dateString += dateTime.day.toString() + ", ";
+  dateString += dateTime.year.toString() + " at ";
+  return dateString;
+}
 
+String ourTimeFormat(DateTime dateTime){
   //adjust for military time
   //and add am pm
   int hour = dateTime.hour;
@@ -242,7 +243,7 @@ String ourTimeFormat(DateTime dateTime){
   bool add0 = minutes.length != 2;
 
   //add time
-  timeString += hour.toString() + ":";
+  String timeString = hour.toString() + ":";
   timeString += (add0 ? "0" : "");
   timeString += minutes + "";
   timeString += suffix;
