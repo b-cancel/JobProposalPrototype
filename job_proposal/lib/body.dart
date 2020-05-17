@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 //plugin
 import 'package:job_proposal/header/helper.dart';
+import 'package:job_proposal/list.dart';
 import 'package:job_proposal/main.dart';
 import 'package:job_proposal/utils/dateTimePicker/field.dart';
 
@@ -38,16 +39,27 @@ class FormBody extends StatefulWidget {
 }
 
 class _FormBodyState extends State<FormBody> {
-  final ScrollController scrollController = ScrollController();
+  //detects when we tap the add button so that we can add the item
+  final ValueNotifier<bool> addingLineItem = new ValueNotifier<bool>(
+    false,
+  );
 
+  //the values that would be used to generate our Job and save it on the server
+  final ValueNotifier<List<LineItem>> lineItems = ValueNotifier<List<LineItem>>(
+    new List<LineItem>(),
+  ); 
   final ValueNotifier<DateTime> dueDateSelected = ValueNotifier<DateTime>(
     FormBody.nullDateTime,
   );
 
+  //if we try to submit the proposal or order without first
+  //adding a due date -> showError & scrollToTheTop
+  final ScrollController scrollController = ScrollController();
   final ValueNotifier<bool> showError = ValueNotifier<bool>(
     false,
   );
 
+  //build
   @override
   Widget build(BuildContext context) {
     //create app bar
@@ -67,24 +79,9 @@ class _FormBodyState extends State<FormBody> {
       bottomAppBarHeight: widget.appBarHeight,
       //data
       clientData: widget.clientData,
+      //data that we add to
+      addingLineItem: addingLineItem,
     );
-
-    //generate group widgets
-    List<Widget> tasks = new List<Widget>();
-    /*
-    for (int i = 0; i < doseGroups.length; i++) {
-      groups.add(
-        DoseGroup(
-          group: doseGroups[i],
-          doseIDtoActiveDoseVN: doseIDtoActiveDoseVN,
-          lastGroup: i == (doseGroups.length - 1),
-          theSelectedDateTime: theSelectedDateTime,
-          lastDateTime: lastDateTime,
-          otherCloseOnToggle: othersCloseOnToggle,
-          autoScrollController: widget.autoScrollController,
-        ),
-      );
-    }*/
 
     Widget dueDateSelector = SliverToBoxAdapter(
       child: CustomDateTimePicker(
@@ -95,7 +92,7 @@ class _FormBodyState extends State<FormBody> {
 
     Widget submitButton = SliverToBoxAdapter(
       child: SubmitButton(
-        hasTasks: tasks.length > 0,
+        lineItems: lineItems,
         scrollController: scrollController,
         dueDateSelected: dueDateSelected,
         showError: showError,
@@ -114,8 +111,13 @@ class _FormBodyState extends State<FormBody> {
     //combine slivers
     List<Widget> slivers = new List<Widget>();
     slivers.add(sliverAppBar);
-    slivers.addAll(tasks);
     slivers.add(dueDateSelector);
+    slivers.add( //the beef of the project
+      LineItemList(
+        addingLineItem: addingLineItem,
+        lineItems: lineItems,
+      ),
+    );
     slivers.add(submitButton);
     slivers.add(fillRemainingSliver);
 
@@ -133,13 +135,13 @@ class _FormBodyState extends State<FormBody> {
 class SubmitButton extends StatefulWidget {
   const SubmitButton({
     Key key,
-    @required this.hasTasks,
+    @required this.lineItems,
     @required this.scrollController,
     @required this.dueDateSelected,
     @required this.showError,
   }) : super(key: key);
 
-  final bool hasTasks;
+  final ValueNotifier<List<LineItem>> lineItems;
   final ScrollController scrollController;
   final ValueNotifier<DateTime> dueDateSelected;
   final ValueNotifier<bool> showError;
@@ -209,7 +211,7 @@ class _SubmitButtonState extends State<SubmitButton> {
               widget.showError.value = true;
             } else {
               //date was selected, now just worry about tasks
-              if (widget.hasTasks) {
+              if (widget.lineItems.value.length > 0) {
                 visualPrint(
                   context,
                   basicAction + formAction + "...",

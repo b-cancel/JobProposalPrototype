@@ -160,15 +160,17 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
         //After they select a due date they will know what this is
         hintText: "Tap To Select Due Date",
         //snow error when needed
-        errorText: (widget.showError.value ? tab + errorText : null),
+        errorText: null, //(widget.showError.value ? tab + errorText : null),
         //override by error
-        helperText: tab + (helperText),
+        helperText: null, //tab + (helperText),
         //match sytling
         prefixIcon: Icon(
           Icons.calendar_today,
           //highlight a bit since it is required
           color: widget.showError.value ? Colors.red : lbGreen,
         ),
+        //removes annoying bottom padding
+        //contentPadding: EdgeInsets.zero,
         //date field has no selection or focus so dont show it
         border: standardBorder,
         focusedBorder: standardBorder,
@@ -224,21 +226,33 @@ String ourDateFormat(DateTime dateTime){
 }
 
 String ourTimeFormat(DateTime dateTime){
-  //adjust for military time
-  //and add am pm
+  //make the time more human readable
   int hour = dateTime.hour;
   String suffix = " AM";
-  if (hour == 0) {
-    suffix = " MID";
+  
+  //cover 2 cases that are confusing for most
+  //since technically 12 noon and midnight arent am or or pm
+  //given the origin of am or pm in latin
+  //and people confuse them when they are given am or pm anyways
+  //myself included
+  if (hour == 12 || hour == 0) {
+    if(hour == 0){
+      suffix = " NIGHT";
+      hour = 12;
+    }
+    else{
+      suffix = " NOON";
+    }
   }
-  if (hour == 12) {
-    suffix = " NOON";
-  }
-  if (hour > 12) {
-    hour -= 12;
-    suffix = " PM";
+  else{ //cover military time exceptions
+    //13:00 is 1 PM until 23:00 11 PM
+    if (hour > 12) { 
+      hour -= 12;
+      suffix = " PM";
+    }
   }
 
+  //add 0 to keep format consistent
   String minutes = dateTime.minute.toString();
   bool add0 = minutes.length != 2;
 

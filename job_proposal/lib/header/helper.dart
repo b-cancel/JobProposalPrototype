@@ -56,10 +56,12 @@ class SliverTopAppBar extends StatelessWidget {
 class SliverBottomAppBar extends StatelessWidget {
   const SliverBottomAppBar({
     @required this.bottomAppBarHeight,
+    @required this.addingLineItem,
     Key key,
   }) : super(key: key);
 
   final double bottomAppBarHeight;
+  final ValueNotifier<bool> addingLineItem;
 
   @override
   Widget build(BuildContext context) {
@@ -100,40 +102,46 @@ class SliverBottomAppBar extends StatelessWidget {
                     color: ThemeData.dark().primaryColorDark,
                   ),
                   //ThemeData.dark().primaryColor
-                  //
-                  child: InkWell(
-                    onTap: () {
-                      visualPrint(
-                        context,
-                        "Add Task Functionality",
+                  child: AnimatedBuilder(
+                    animation: addingLineItem,
+                    builder: (context, child) {
+                      return InkWell(
+                        //disable the button until the list adds the line item
+                        onTap: addingLineItem.value
+                            ? null
+                            //its false, so the button is active
+                            //so the user can make it true
+                            : () {
+                                addingLineItem.value = true;
+                              },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  right: 8.0,
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                "Add Task",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: 8.0,
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "Add Task",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
               ),

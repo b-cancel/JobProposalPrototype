@@ -17,6 +17,7 @@ class HeaderSliver extends StatelessWidget {
     @required this.bottomAppBarHeight,
     //data
     @required this.clientData,
+    @required this.addingLineItem,
   }) : super(key: key);
 
   final double statusBarHeight;
@@ -25,6 +26,7 @@ class HeaderSliver extends StatelessWidget {
   final double bottomAppBarHeight;
   //data
   final ClientData clientData;
+  final ValueNotifier<bool> addingLineItem;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +62,7 @@ class HeaderSliver extends StatelessWidget {
         ),
         child: SliverBottomAppBar(
           bottomAppBarHeight: bottomAppBarHeight,
+          addingLineItem: addingLineItem,
         ),
       ),
       //most of the screen
