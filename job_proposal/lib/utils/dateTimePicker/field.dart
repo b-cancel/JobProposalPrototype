@@ -27,8 +27,18 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   static Duration oneDay = const Duration(days: 1);
   static Duration oneYear = oneDay * 365;
   static Duration humanLifeTime = oneYear * 100;
-  static String helperText = "A Due Date Is Required*";
-  static String errorText = "Atleast an Approximate Due Date is Required*";
+  static String tab = ""; //"\t\t\t\t\t\t"; //equivalent to about 16 px
+  static String helperText = ""; //"A Due Date Is Required*";
+  static String errorText =
+      ""; //"Atleast an Approximate Due Date is Required*";
+  InputBorder standardBorder = UnderlineInputBorder(
+    borderRadius: BorderRadius.zero,
+    borderSide: BorderSide(
+      color: lbGreen,
+      //match default size
+      width: 1,
+    ),
+  );
 
   //changed throughout
   TextEditingController textEditingController;
@@ -44,8 +54,9 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   //update the text when the date changes
   updateText() {
     //update text (we assume its valid)
-    textEditingController.text =
-        ourDateTimeFormat(widget.dueDateSelected.value);
+    textEditingController.text = ourDateTimeFormat(
+      widget.dueDateSelected.value,
+    );
 
     //remove error
     widget.showError.value = false;
@@ -79,114 +90,94 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   @override
   Widget build(BuildContext context) {
     print("in build error is: " + widget.showError.value.toString());
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.0,
+    return TextField(
+      controller: textEditingController,
+      //on tap open up the selector
+      onTap: () {
+        //NOTE: this may or may not update the value notifier
+        //that then updates everything else
+        if (Platform.isIOS) {
+          //TODO: remove the weird military time part of the picker
+          selectDateTimeIOS(
+            context,
+            //give the user some time
+            //maybe they forgot to send the job
+            //and they want to add it in for their records
+            firstDate: DateTime.now().subtract(
+              oneYear,
+            ),
+            //anything else is clearly unrealistic
+            lastDate: DateTime.now().add(
+              humanLifeTime,
+            ),
+            //if null will default to DateTime.now()
+            selectedDate: widget.dueDateSelected,
+          );
+        } else {
+          selectDateTimeAndroid(
+            context,
+            //give the user some time
+            //maybe they forgot to send the job
+            //and they want to add it in for their records
+            firstDate: DateTime.now().subtract(
+              oneYear,
+            ),
+            //anything else is clearly unrealistic
+            lastDate: DateTime.now().add(
+              humanLifeTime,
+            ),
+            //if null will default to DateTime.now()
+            selectedDate: widget.dueDateSelected,
+          );
+        }
+      },
+      //we are updating it with the controller
+      readOnly: true,
+      //still needs to show up as enabled
+      //so that on tap works and styling works
+      enabled: true,
+      //use all the lines you need to show all the details
+      minLines: null,
+      maxLines: null,
+      expands: false,
+      /*
+      //convience
+      toolbarOptions: ToolbarOptions(
+        //removals dont happen
+        cut: false,
+        paste: false,
+        //they may want to copy for some reason
+        selectAll: true,
+        copy: true,
       ),
-      child: Stack(
-        children: <Widget>[
-          TextField(
-            controller: textEditingController,
-            //on tap open up the selector
-            onTap: () {
-              //NOTE: this may or may not update the value notifier
-              //that then updates everything else
-              if (Platform.isIOS) {
-                //TODO: remove the weird military time part of the picker
-                selectDateTimeIOS(
-                  context,
-                  //give the user some time
-                  //maybe they forgot to send the job
-                  //and they want to add it in for their records
-                  firstDate: DateTime.now().subtract(
-                    oneYear,
-                  ),
-                  //anything else is clearly unrealistic
-                  lastDate: DateTime.now().add(
-                    humanLifeTime,
-                  ),
-                  //if null will default to DateTime.now()
-                  selectedDate: widget.dueDateSelected,
-                );
-              } else {
-                selectDateTimeAndroid(
-                  context,
-                  //give the user some time
-                  //maybe they forgot to send the job
-                  //and they want to add it in for their records
-                  firstDate: DateTime.now().subtract(
-                    oneYear,
-                  ),
-                  //anything else is clearly unrealistic
-                  lastDate: DateTime.now().add(
-                    humanLifeTime,
-                  ),
-                  //if null will default to DateTime.now()
-                  selectedDate: widget.dueDateSelected,
-                );
-              }
-            },
-            //we are updating it with the controller
-            readOnly: true,
-            //still needs to show up as enabled
-            //so that on tap works and styling works
-            enabled: true,
-            //use all the lines you need to show all the details
-            minLines: null,
-            maxLines: null,
-            expands: false,
-            /*
-            //convience
-            toolbarOptions: ToolbarOptions(
-              //removals dont happen
-              cut: false,
-              paste: false,
-              //they may want to copy for some reason
-              selectAll: true,
-              copy: true,
-            ),
-            //TODO: what does this do?
-            enableInteractiveSelection: true,
-            */
-            //make pretty
-            decoration: InputDecoration(
-              //no prefix text (text in front of field) hint does enough
-              //no label text (on top of field) hint does enough
-              //TODO: use counter or suffix text to indicate if they date is in the past
-              //TODO: count also give a month, week, day, kinda ETA
-              //After they select a due date they will know what this is
-              hintText: "Tap To Select Due Date",
-              //snow error when needed
-              errorText: widget.showError.value ? errorText : null,
-              //override by error
-              helperText: helperText,
-              //match sytling
-              icon: Icon(
-                Icons.calendar_today,
-                //highlight a bit since it is required
-                color: lbGreen,
-              ),
-              //hide the underline
-              border: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-            ),
-          ),
-          //button to not allow us to mess with the text field manually
-          /*Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: (){
-                  
-                },
-                child: Container(),
-              ),
-            ),
-          )*/
-        ],
+      //TODO: what does this do?
+      enableInteractiveSelection: true,
+      */
+      //make pretty
+      decoration: InputDecoration(
+        //no prefix text (text in front of field) hint does enough
+        //no label text (on top of field) hint does enough
+        //TODO: use counter or suffix text to indicate if they date is in the past
+        //TODO: count also give a month, week, day, kinda ETA
+        //After they select a due date they will know what this is
+        hintText: "Tap To Select Due Date",
+        //snow error when needed
+        errorText: (widget.showError.value ? tab + errorText : null),
+        //override by error
+        helperText: tab + (helperText),
+        //match sytling
+        prefixIcon: Icon(
+          Icons.calendar_today,
+          //highlight a bit since it is required
+          color: widget.showError.value ? Colors.red : lbGreen,
+        ),
+        //date field has no selection or focus so dont show it
+        border: standardBorder,
+        focusedBorder: standardBorder,
+        enabledBorder: standardBorder,
+        disabledBorder: standardBorder,
+        //NOTE: we allow the error to show by changing the border to red
+        //errorBorder: standardBorder,
       ),
     );
   }
@@ -221,11 +212,16 @@ List<String> idToMonth = [
 
 //"weekday, month day, year at 0:00pm";
 String ourDateTimeFormat(DateTime dateTime) {
-  //everything except time
-  String dateString = idToWeekday[dateTime.weekday] + ", ";
-  dateString += idToMonth[dateTime.month] + " ";
-  dateString += dateTime.day.toString() + ", ";
-  dateString += dateTime.year.toString() + " at ";
+  String dateTimeString = idToWeekday[dateTime.weekday] + ", ";
+  dateTimeString += idToMonth[dateTime.month] + " ";
+  dateTimeString += dateTime.day.toString() + ", ";
+  dateTimeString += dateTime.year.toString() + " at ";
+  dateTimeString += ourTimeFormat(dateTime);
+  return dateTimeString;
+}
+
+String ourTimeFormat(DateTime dateTime){
+  String timeString = "";
 
   //adjust for military time
   //and add am pm
@@ -246,9 +242,9 @@ String ourDateTimeFormat(DateTime dateTime) {
   bool add0 = minutes.length != 2;
 
   //add time
-  dateString += hour.toString() + ":";
-  dateString += (add0 ? "0" : "");
-  dateString += minutes + "";
-  dateString += suffix;
-  return dateString;
+  timeString += hour.toString() + ":";
+  timeString += (add0 ? "0" : "");
+  timeString += minutes + "";
+  timeString += suffix;
+  return timeString;
 }

@@ -8,16 +8,36 @@ import 'package:flutter_rounded_date_picker/src/material_rounded_year_picker_sty
 //internal
 import 'package:job_proposal/body.dart';
 import 'package:job_proposal/main.dart';
+import 'package:job_proposal/utils/dateTimePicker/field.dart';
 
-//widget
-MaterialColor getMaterialColor(Color color){
+//pop up styling
+ThemeData themeForPopUps = ThemeData(
+  //color of buttons
+  //A.K.A. ThemeData.dark().scaffoldBackgroundColor,
+  //A.K.A. Color(0xFF303030),
+  primarySwatch: getMaterialColor(lbGreen),
+  //circle highlight
+  accentColor: lbGreen,
+  //banner color
+  primaryColor: lbGreen,
+  //color of text inside circle highlight
+  /*
+  accentTextTheme: TextTheme(
+    bodyText1: TextStyle(
+      color: ThemeData.dark().scaffoldBackgroundColor,
+    ),
+  ),
+  */
+);
+
+MaterialColor getMaterialColor(Color color) {
   return MaterialColor(
-    0xFF + color.red + color.green + color.blue,
+    color.value,
     getColorMap(color.red, color.green, color.blue),
   );
 }
 
-Map<int, Color> getColorMap(int red, int green, int blue){
+Map<int, Color> getColorMap(int red, int green, int blue) {
   Color theColor = Color.fromRGBO(red, green, blue, 1);
   return {
     50: theColor,
@@ -33,56 +53,87 @@ Map<int, Color> getColorMap(int red, int green, int blue){
   };
 }
 
+//selector
 selectDateTimeAndroid(
-  BuildContext context, 
-  {
-    @required DateTime firstDate,
-    @required DateTime lastDate,
-    @required ValueNotifier<DateTime> selectedDate,
-    double borderRadius: 0,
-    bool barrierDismissible: true,
+  BuildContext context, {
+  @required DateTime firstDate,
+  @required DateTime lastDate,
+  @required ValueNotifier<DateTime> selectedDate,
+}) async {
+  //set actual date time
+  ValueNotifier<DateTime> dtToUpdate = new ValueNotifier<DateTime>(
+    selectedDate.value,
+  );
+  if (isDateNull(dtToUpdate.value)) {
+    dtToUpdate.value = DateTime.now();
   }
-) async {
-  //the theme for both pop ups
-  ThemeData themeForPopUps = ThemeData(
-    //color of buttons
-    //A.K.A. ThemeData.dark().scaffoldBackgroundColor,
-    //A.K.A. Color(0xFF303030),
-    primarySwatch: getMaterialColor(lbGreen),
-    //circle highlight
-    accentColor: Theme.of(context).accentColor,
-    //banner color
-    primaryColor: Theme.of(context).accentColor,
-    //color of text inside circle highlight
-    /*
-    accentTextTheme: TextTheme(
-      bodyText1: TextStyle(
-        color: ThemeData.dark().scaffoldBackgroundColor,
-      ),
-    ),
-    */
+
+  //we grab the date returned to determine if the user
+  //either agreed to keep the change
+  //or decided to revert
+  DateTime result = await changeDateTime(
+    context,
+    dtWithLastSavedTime: dtToUpdate,
+    firstDate: firstDate,
+    lastDate: lastDate,
   );
 
-  //set actual date time
-  DateTime initialDateTime = selectedDate.value;
-  if (isDateNull(initialDateTime)) {
-    initialDateTime = DateTime.now();
+  //if date picked is different that the intial
+  //ONLY THEN do we care about the newDateTime
+  //otherwise the changes where made but then canceled
+  if (result != null) {
+    //select the date and have the change reflected in the UI
+    selectedDate.value;
   }
+}
 
-  //pick date
-  DateTime datePicked = await showRoundedDatePicker(
+//TODO: more consistent behavior
+//I can update the date on the fly
+//EX: I can update the time date, then open the time picker and keep that date
+//BUT... I can't to the same thing for the time given the limits of the plugin
+
+//For both of the very confusing functions below
+//the dateToUpdate is updated instantly
+//when a change is made to either date or time
+//---
+//specifically to the date portion for the date picker
+//AND specifically to the time portion for the time picker
+
+//CASE 1: this is so that if we open the other type of picker
+//which implies we close the one that was open
+//the date or time that we selected in this picker gets transfered over to the other picker
+
+//CASE 2: if we don't open another picker we need to read what the picker returned
+//because the user may have canceled their selection
+
+//date picker than lets you change time
+Future<DateTime> changeDateTime(
+  BuildContext context, {
+  //has the right time
+  ValueNotifier<DateTime> dtWithLastSavedTime,
+  DateTime firstDate,
+  DateTime lastDate,
+  //other
+  double borderRadius: 0,
+  bool barrierDismissible: true,
+}) async {
+  DateTime result = await showRoundedDatePicker(
     context: context,
     //options
     initialDatePickerMode: DatePickerMode.day,
-    barrierDismissible: barrierDismissible,
-    borderRadius: borderRadius,
+    barrierDismissible: barrierDismissible,  
     //dates
-    initialDate: initialDateTime,
+    initialDate: dtWithLastSavedTime.value,
     firstDate: firstDate,
     lastDate: lastDate,
     //styling
-    description: "Due Date",
     theme: themeForPopUps,
+    borderRadius: borderRadius,
+    description: "Due Date",
+    textNegativeButton: "Cancel",
+    textPositiveButton: "AT " + ourTimeFormat(
+      dtWithLastSavedTime.value,
+    ),
     styleYearPicker: MaterialRoundedYearPickerStyle(
       textStyleYearSelected: TextStyle(
         fontWeight: FontWeight.bold,
@@ -95,63 +146,125 @@ selectDateTimeAndroid(
         fontSize: 24,
       ),
     ),
-    //alternative option button
-    textActionButton: "Select Time",
-    onTapActionButton: (){
+    //instant update
+    onTapDay: (DateTime newDate, bool boolean) {
+      DateTime oldTime = dtWithLastSavedTime.value;
 
+      //only grab new date (don't touch time)
+      dtWithLastSavedTime.value = getDateTimeFrom2(
+        hasDate: newDate,
+        hasTime: oldTime,
+      );
+
+      //meets some unknown function requirement
+      return true;
+    },
+    //alternative option button
+    textActionButton: "Change Time",
+    onTapActionButton: () async {
+      //pop ourselves and
+      //pass the responsibility to the next picker to return
+      Navigator.of(context).pop();
+
+      //call the next picker
+      return await changeTime(
+        context,
+        dtWithLastSavedDate: dtWithLastSavedTime,
+        firstDate: firstDate,
+        lastDate: lastDate,
+      );
     },
   );
 
+  //If you open up the time picker, that will return instead
+  //otherwise we return here
 
+  //we don't need to update the result with dateToUpdate
+  //since the result is basically the LAST value dateToUpdate was set to
+  //IF the user didn't cancel operations
 
-  /*
-  //pick time
+  //null if the user canceled operations
+  return result;
+}
+
+//time picker that lets you change date
+Future<DateTime> changeTime(
+  BuildContext context, {
+  //has the right date
+  ValueNotifier<DateTime> dtWithLastSavedDate,
+  DateTime firstDate,
+  DateTime lastDate,
+  //other
+  double borderRadius: 0,
+  bool barrierDismissible: true,
+}) async {
+  //change the time
   TimeOfDay selectedTime = await showRoundedTimePicker(
     context: context,
-    initialTime: TimeOfDay.fromDateTime(initialDate),
-    theme: themeForPopUps,
+    //options
     barrierDismissible: barrierDismissible,
+    //times
+    initialTime: TimeOfDay.fromDateTime(
+      dtWithLastSavedDate.value,
+    ),
+    //styling
+    theme: themeForPopUps,
     borderRadius: 0,
+    //negativeBtn: "Cancel",
+    //positiveBtn: "SELECT",
+    //alternative option button
+
+    //NOTE: this option was eliminated since 
+    //if we go to change the date, our time will not be saved
+    //but if we are changing date, and go to time our our date will be saved
+    //to produce less confusing behavior we only allow the date picker to open up the time picker
+    //and not the time picker to open up the date picker
+
+    /*
     leftBtn: "Change Date",
     onLeftBtn: () async {
-      
-
       //update the selected date
-      if(datePicked != null){
+      if (datePicked != null) {
         selectedDate.value = datePicked;
       }
-    }
-  );
-  */
-
-  //if they didn't pick a date they didn't pick a time
-  if(selectedDate != null){ //we selected a date
-  /*
-    //construct the new date time
-    //may not include a date
-
-    //date wasn't change
-    if(selectedDate.value == initialDate){
-      return DateTime(
-        //use last date
-        initialDate.year,
-        initialDate.month,
-        initialDate.day,
-        //use this time
-        selectedTime.hour,
-        selectedTime.minute,
-      );
-    } else {
-      return DateTime(
-        //use this date
-        selectedDate.value.year,
-        selectedDate.value.month,
-        selectedDate.value.day,
-        //use this time
-        selectedTime.hour,
-        selectedTime.minute,
-      );
-    }
+    },
     */
-  } //use last date and time
+  );
+
+  //If you open up the date picker, that will return instead
+  //otherwise we return here
+
+  //we don't need to update the result with dateToUpdate
+  //since the result is basically the LAST value dateToUpdate was set to
+  //IF the user didn't cancel operations
+
+  //null if the user canceled operations
+  if (selectedTime == null) {
+    return null;
+  } else {
+    //merge the new time with the old date
+    return getDateTimeFrom2(
+      hasDate: dtWithLastSavedDate.value,
+      //we must full with dummy data given postitional parameters
+      hasTime: DateTime(
+        0, //year
+        0, //month
+        0, //day
+        selectedTime.hour,
+        selectedTime.minute,
+      ),
+    );
+  }
+}
+
+DateTime getDateTimeFrom2({DateTime hasDate, DateTime hasTime}) {
+  return DateTime(
+    //date
+    hasDate.year,
+    hasDate.month,
+    hasDate.day,
+    //time
+    hasTime.hour,
+    hasTime.minute,
+  );
 }
