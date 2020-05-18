@@ -66,7 +66,7 @@ class _FormBodyState extends State<FormBody> {
     Widget sliverAppBar = HeaderSliver(
       statusBarHeight: widget.statusBarHeight,
       topAppBarHeight: widget.appBarHeight,
-      
+
       //includes the bottom app bar
       //it doesn't feel like the statusBarHeight is part of the app in terms of visual ratio
       //so I don't count it when doing the ratio math
@@ -154,7 +154,9 @@ class SubmitButton extends StatefulWidget {
 }
 
 class _SubmitButtonState extends State<SubmitButton> {
-  scrollToTopIfTrue() {
+  //scroll to top should occur always
+  //and not just on the first time
+  scrollToTop() {
     if (widget.showError.value) {
       widget.scrollController.animateTo(
         0,
@@ -178,14 +180,11 @@ class _SubmitButtonState extends State<SubmitButton> {
     super.initState();
     //switch out button text
     JobForm.isOrder.addListener(updateState);
-    //scroll to top if the user tries to submit with a due date
-    widget.showError.addListener(scrollToTopIfTrue);
   }
 
   @override
   void dispose() {
     JobForm.isOrder.removeListener(updateState);
-    widget.showError.removeListener(scrollToTopIfTrue);
     super.dispose();
   }
 
@@ -211,7 +210,9 @@ class _SubmitButtonState extends State<SubmitButton> {
           onPressed: () {
             //if no date has been selected let it show as an error in the text field
             if (isDateNull(widget.dueDateSelected.value)) {
+              print("should be showing error");
               widget.showError.value = true;
+              scrollToTop();
             } else {
               //date was selected, now just worry about tasks
               if (widget.lineItems.value.length > 0) {

@@ -5,9 +5,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 int nextAvailableLineItemID = 0;
 class LineItem {
   int id;
-  String description = "";
-  double materialsCost = 0;
-  double laborCost = 0;
+  //if the LCC wants to be plain and simple this will be sent
+  String description = "Agreed On Yard Work";
+  //simplification, but all thats needed for most scenarios
+  ValueNotifier<int> materialsCost = new ValueNotifier<int>(0);
+  ValueNotifier<int> laborCost = new ValueNotifier<int>(0);
   //used only for UI
   FocusNode focusNode = new FocusNode();
   //TODO: make this functional later

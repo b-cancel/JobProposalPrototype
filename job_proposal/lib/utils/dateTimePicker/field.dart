@@ -31,24 +31,17 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   static String helperText = ""; //"A Due Date Is Required*";
   static String errorText =
       ""; //"Atleast an Approximate Due Date is Required*";
-  InputBorder standardBorder = UnderlineInputBorder(
-    borderRadius: BorderRadius.zero,
-    borderSide: BorderSide(
-      color: lbGreen,
-      //match default size
-      width: 1,
-    ),
-  );
+
+  updateState(){
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      if(mounted){
+        setState(() {});
+      }
+    });
+  }
 
   //changed throughout
   TextEditingController textEditingController;
-
-  //update the UI upon error detection
-  updateState() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
 
   //update the text when the date changes
   updateText() {
@@ -56,9 +49,6 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
     textEditingController.text = ourDateTimeFormat(
       widget.dueDateSelected.value,
     );
-
-    //remove error
-    widget.showError.value = false;
   }
 
   //init
@@ -88,101 +78,125 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   //build
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: textEditingController,
-      //on tap open up the selector
-      onTap: () {
-        //NOTE: this may or may not update the value notifier
-        //that then updates everything else
-        if (Platform.isIOS) {
-          //TODO: remove the weird military time part of the picker
-          selectDateTimeIOS(
-            context,
-            //give the user some time
-            //maybe they forgot to send the job
-            //and they want to add it in for their records
-            firstDate: DateTime.now().subtract(
-              oneYear,
-            ),
-            //anything else is clearly unrealistic
-            lastDate: DateTime.now().add(
-              humanLifeTime,
-            ),
-            //if null will default to DateTime.now()
-            selectedDate: widget.dueDateSelected,
-          );
-        } else {
-          selectDateTimeAndroid(
-            context,
-            //give the user some time
-            //maybe they forgot to send the job
-            //and they want to add it in for their records
-            firstDate: DateTime.now().subtract(
-              oneYear,
-            ),
-            //anything else is clearly unrealistic
-            lastDate: DateTime.now().add(
-              humanLifeTime,
-            ),
-            //if null will default to DateTime.now()
-            selectedDate: widget.dueDateSelected,
-          );
-        }
-      },
-      //we are updating it with the controller
-      readOnly: true,
-      //still needs to show up as enabled
-      //so that on tap works and styling works
-      enabled: true,
-      //use all the lines you need to show all the details
-      minLines: null,
-      maxLines: null,
-      expands: false,
-      /*
-      //convience
-      toolbarOptions: ToolbarOptions(
-        //removals dont happen
-        cut: false,
-        paste: false,
-        //they may want to copy for some reason
-        selectAll: true,
-        copy: true,
+    //border is red if error
+    InputBorder standardBorder = UnderlineInputBorder(
+      borderRadius: BorderRadius.zero,
+      borderSide: BorderSide(
+        color: widget.showError.value ? Colors.red : lbGreen,
+        //match default size
+        width: 1,
       ),
-      //TODO: what does this do?
-      enableInteractiveSelection: true,
-      */
-      //make pretty
-      decoration: InputDecoration(
-        //no prefix text (text in front of field) hint does enough
-        //no label text (on top of field) hint does enough
-        //TODO: use counter or suffix text to indicate if they date is in the past
-        //TODO: count also give a month, week, day, kinda ETA
-        //After they select a due date they will know what this is
-        hintText: "Tap To Select Due Date",
-        //snow error when needed
-        errorText: null, //(widget.showError.value ? tab + errorText : null),
-        //override by error
-        helperText: null, //tab + (helperText),
-        //match sytling
-        prefixIcon: Padding(
-          padding: EdgeInsets.only(
-            left: 8.0,
-          ),
-          child: Icon(
-            Icons.calendar_today,
-            //highlight a bit since it is required
-            color: widget.showError.value ? Colors.red : lbGreen,
-          ),
+    );
+
+    //build
+    return Container(
+      //pastel red
+      //more obvious than not changing fill color
+      //but screams less than flat red
+      //looks better
+      //and has more contrast with the thing inside of the field
+      //Color(0xFFFF6961)
+      //still prefered a very subtle red
+      color: widget.showError.value ? Colors.red.withOpacity(0.25): Colors.transparent,
+      child: TextField(
+        controller: textEditingController,
+        //on tap open up the selector
+        onTap: () {
+          //they should know what they need to plugin by now
+          //remove the error
+          widget.showError.value = false;
+
+          //NOTE: this may or may not update the value notifier
+          //that then updates everything else
+          if (Platform.isIOS) {
+            //TODO: remove the weird military time part of the picker
+            selectDateTimeIOS(
+              context,
+              //give the user some time
+              //maybe they forgot to send the job
+              //and they want to add it in for their records
+              firstDate: DateTime.now().subtract(
+                oneYear,
+              ),
+              //anything else is clearly unrealistic
+              lastDate: DateTime.now().add(
+                humanLifeTime,
+              ),
+              //if null will default to DateTime.now()
+              selectedDate: widget.dueDateSelected,
+            );
+          } else {
+            selectDateTimeAndroid(
+              context,
+              //give the user some time
+              //maybe they forgot to send the job
+              //and they want to add it in for their records
+              firstDate: DateTime.now().subtract(
+                oneYear,
+              ),
+              //anything else is clearly unrealistic
+              lastDate: DateTime.now().add(
+                humanLifeTime,
+              ),
+              //if null will default to DateTime.now()
+              selectedDate: widget.dueDateSelected,
+            );
+          }
+        },
+        //we are updating it with the controller
+        readOnly: true,
+        //still needs to show up as enabled
+        //so that on tap works and styling works
+        enabled: true,
+        //use all the lines you need to show all the details
+        minLines: null,
+        maxLines: null,
+        expands: false,
+        /*
+        //convience
+        toolbarOptions: ToolbarOptions(
+          //removals dont happen
+          cut: false,
+          paste: false,
+          //they may want to copy for some reason
+          selectAll: true,
+          copy: true,
         ),
-        //removes annoying bottom padding
-        //contentPadding: EdgeInsets.zero,
-        //date field has no selection or focus so dont show it
-        border: standardBorder,
-        focusedBorder: standardBorder,
-        enabledBorder: standardBorder,
-        disabledBorder: standardBorder,
-        //NOTE: we allow the error to show by changing the border to red
-        //errorBorder: standardBorder,
+        //TODO: what does this do?
+        enableInteractiveSelection: true,
+        */
+        //make pretty
+        decoration: InputDecoration(
+          //no prefix text (text in front of field) hint does enough
+          //no label text (on top of field) hint does enough
+          //TODO: use counter or suffix text to indicate if they date is in the past
+          //TODO: count also give a month, week, day, kinda ETA
+          //After they select a due date they will know what this is
+          hintText: "Tap To Select Due Date",
+          //snow error when needed
+          errorText: null, //(widget.showError.value ? tab + errorText : null),
+          //override by error
+          helperText: null, //tab + (helperText),
+          //match sytling
+          prefixIcon: Padding(
+            padding: EdgeInsets.only(
+              left: 8.0,
+            ),
+            child: Icon(
+              Icons.calendar_today,
+              //highlight a bit since it is required
+              color: widget.showError.value ? Colors.black : lbGreen,
+            ),
+          ),
+          //removes annoying bottom padding
+          //contentPadding: EdgeInsets.zero,
+          //date field has no selection or focus so dont show it
+          border: standardBorder,
+          focusedBorder: standardBorder,
+          enabledBorder: standardBorder,
+          disabledBorder: standardBorder,
+          errorBorder: standardBorder,
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:job_proposal/data/structs.dart';
 import 'package:job_proposal/main.dart';
+import 'package:job_proposal/total.dart';
 
 class LineItemList extends StatefulWidget {
   LineItemList({
@@ -77,9 +78,16 @@ class _LineItemListState extends State<LineItemList> {
     return SliverList(
       delegate: SliverChildListDelegate(
         List.generate(
-          lineItemCount,
+          lineItemCount + 1,
           (indexInVisualList) {
-            //the list is added to from the back programatically
+            //the total that is calculated at the bottom
+            if(indexInVisualList == lineItemCount){
+              return DisplayTotal(
+                lineItems: widget.lineItems,
+              );
+            }
+            else { //list item
+              //the list is added to from the back programatically
             //but the last value added should be on top
             int indexInActualList = lastIndex - indexInVisualList;
             LineItem aLineItem = widget.lineItems.value[indexInActualList];
@@ -205,6 +213,7 @@ class _LineItemListState extends State<LineItemList> {
                 ],
               ),
             );
+            }
           },
         ),
       ),
