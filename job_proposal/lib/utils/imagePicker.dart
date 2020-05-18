@@ -13,7 +13,6 @@ import 'package:job_proposal/main.dart';
 Future<String> showImagePicker(
   BuildContext context,
 ) async {
-  bool isLeft = true;
   //returns newly selected imageUrl
   return await showDialog(
     context: context,
@@ -69,10 +68,12 @@ class ImageSelectButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: InkWell(
-        onTap: () => changeImage(
-          context,
-          isLeft,
-        ),
+        onTap: () {
+          changeImage(
+            context,
+            isLeft,
+          );
+        },
         child: Container(),
       ),
     );
@@ -92,11 +93,10 @@ class ImageSelectButtonUI extends StatelessWidget {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-          border: Border(
-            right: isLeft ? stdBorder : BorderSide.none,
-            left: isLeft ? BorderSide.none : stdBorder,
-          )
-        ),
+            border: Border(
+          right: isLeft ? stdBorder : BorderSide.none,
+          left: isLeft ? BorderSide.none : stdBorder,
+        )),
         padding: EdgeInsets.all(
           24,
         ),
@@ -144,6 +144,6 @@ changeImage(BuildContext context, bool isGallery) async {
     );
   }
   //ELSE... we back out of selecting it
-  //but we assume the user MIGHT just be trying to 
+  //but we assume the user MIGHT just be trying to
   //take a photo instead of finding it or the inverse
 }

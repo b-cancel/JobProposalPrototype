@@ -104,12 +104,14 @@ class _LineItemListState extends State<LineItemList> {
                 //force autofocus if the first one didn't do the trick
                 //for reasons explained in the autofocus parameter
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (aLineItem.focusNode.hasFocus == false) {
-                    //NOTE: if you don't unfocus first you get multiple fields focused at once
-                    //FocusScope.of(context).unfocus();
-                    FocusScope.of(context).requestFocus(
-                      aLineItem.focusNode,
-                    );
+                  if (mounted) {
+                    if (aLineItem.focusNode.hasFocus == false) {
+                      //NOTE: if you don't unfocus first you get multiple fields focused at once
+                      //FocusScope.of(context).unfocus();
+                      FocusScope.of(context).requestFocus(
+                        aLineItem.focusNode,
+                      );
+                    }
                   }
                 });
                 widget.addingLineItem.value = false;
@@ -347,6 +349,8 @@ class LineItemPopUpMenuButton extends StatelessWidget {
 
     //the user may not have selected anything
     if (newLocation != null) {
+      FocusScope.of(context).unfocus();
+
       //the user did select something
       //TODO: optimize this
 
@@ -365,12 +369,64 @@ class LineItemPopUpMenuButton extends StatelessWidget {
       //have the notifier update, which then updates state
       lineItems.value[index].imageLocations.value = imageLocationsCopy;
     }
-
-    print("returned value " + (newLocation ?? "NONE"));
   }
 
   @override
   Widget build(BuildContext context) {
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        IconButton(
+          icon: Icon(Icons.camera_alt),
+          onPressed: (){
+            FocusScope.of(context).unfocus();
+            addImage(context);
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.delete),
+          onPressed: (){
+            FocusScope.of(context).unfocus();
+            deleteLineItem();
+          },
+        ),
+      ],
+    );
+    //TODO: use mini menu after fixing potential fatal error
+    //using global context didn't help
+    //neither did using the child field of the pop up menu button
+    //nor did using a stateful widget instead
+
+    //but the problem seems to be that when I delete
+    //the pop up menu button no longer has the context that it needs
+    //and then the system errors out
+    /*
+    ════════ Exception caught by widgets library ═══════════════════════════════════
+    The following assertion was thrown building Builder(dirty, dependencies: [MediaQuery]):
+    Looking up a deactivated widget's ancestor is unsafe.
+
+    At this point the state of the widget's element tree is no longer stable.
+    To safely refer to a widget's ancestor in its dispose() method, save a reference to the ancestor by calling dependOnInheritedWidgetOfExactType() in the widget's didChangeDependencies() method.
+
+    The relevant error-causing widget was
+        MaterialApp 
+    lib\main.dart:32
+    When the exception was thrown, this was the stack
+    #0      Element._debugCheckStateIsActiveForAncestorLookup.<anonymous closure> 
+    package:flutter/…/widgets/framework.dart:3781
+    #1      Element._debugCheckStateIsActiveForAncestorLookup 
+    package:flutter/…/widgets/framework.dart:3795
+    #2      Element.visitAncestorElements 
+    package:flutter/…/widgets/framework.dart:3987
+    #3      InheritedTheme.captureAll 
+    package:flutter/…/widgets/inherited_theme.dart:118
+    #4      _PopupMenuRoute.buildPage 
+    package:flutter/…/material/popup_menu.dart:726
+    ...
+    ════════════════════════════════════════════════════════════════════════════════
+    */
+    /*
     return PopupMenuButton<LineItemAction>(
       onSelected: (LineItemAction result) {
         if (result == LineItemAction.delete) {
@@ -396,6 +452,7 @@ class LineItemPopUpMenuButton extends StatelessWidget {
         ),
       ],
     );
+    */
   }
 }
 

@@ -102,6 +102,8 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
         controller: textEditingController,
         //on tap open up the selector
         onTap: () {
+          FocusScope.of(context).unfocus();
+          
           //they should know what they need to plugin by now
           //remove the error
           widget.showError.value = false;

@@ -20,11 +20,11 @@ class ImageGallery extends StatefulWidget {
 
 class _ImageGalleryState extends State<ImageGallery> {
   updateState() {
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(mounted){
         setState(() {});
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -93,6 +93,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
+                            FocusScope.of(context).unfocus();
                             toFullScreen(file);
                           },
                           child: Container(),

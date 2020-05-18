@@ -153,6 +153,7 @@ class _MapOfAddressState extends State<MapOfAddress> {
   }
 
   Future changeAddressSelected(BuildContext context) {
+    FocusScope.of(context).unfocus();
     return showModalBottomSheet(
       context: context,
       builder: (context) {
