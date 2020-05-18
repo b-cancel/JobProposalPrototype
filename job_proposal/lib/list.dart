@@ -105,11 +105,11 @@ class _LineItemListState extends State<LineItemList> {
                 //for reasons explained in the autofocus parameter
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
-                    if (aLineItem.focusNode.hasFocus == false) {
+                    if (aLineItem.descriptionFocusNode.hasFocus == false) {
                       //NOTE: if you don't unfocus first you get multiple fields focused at once
                       //FocusScope.of(context).unfocus();
                       FocusScope.of(context).requestFocus(
-                        aLineItem.focusNode,
+                        aLineItem.descriptionFocusNode,
                       );
                     }
                   }
@@ -186,7 +186,7 @@ class _LineItemListState extends State<LineItemList> {
                                   //NOTE: required because autofocusing only works
                                   //if something else wasnt focused before
                                   focusNode:
-                                      aLineItem.focusNode, //might be null
+                                      aLineItem.descriptionFocusNode, //might be null
                                   //allow overflow to go to another line
                                   maxLines: null,
                                   //make it pretty
@@ -200,12 +200,17 @@ class _LineItemListState extends State<LineItemList> {
                                     disabledBorder: InputBorder.none,
                                     errorBorder: InputBorder.none,
                                   ),
-                                  //NOTE: since currency selection happens with another bit of UI
-                                  textInputAction: TextInputAction.done,
                                   //update structure
                                   onChanged: (String newString) {
                                     widget.lineItems.value[indexInActualList]
                                         .description = newString;
+                                  },
+                                  //NOTE: snap to currency input
+                                  textInputAction: TextInputAction.next,
+                                  onEditingComplete: (){
+                                    FocusScope.of(context).requestFocus(
+                                      aLineItem.costFocusNode,
+                                    );
                                   },
                                 ),
                               ),
@@ -272,6 +277,7 @@ class CostField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      focusNode: lineItems.value[indexInActualList].costFocusNode,
       //only expose numbers on keyboard
       keyboardType: TextInputType.numberWithOptions(
         signed: false,

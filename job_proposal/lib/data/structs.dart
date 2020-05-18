@@ -26,7 +26,8 @@ class LineItem {
   //but thats all you need for most scenarios
   ValueNotifier<int> cost = new ValueNotifier<int>(0);
   //used only for UI
-  FocusNode focusNode = new FocusNode();
+  FocusNode descriptionFocusNode = new FocusNode();
+  FocusNode costFocusNode = new FocusNode();
   //if we add or remove an image we first need to make copy of this
   //then add the image to the copy
   //then set this.value = copy
