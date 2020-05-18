@@ -164,10 +164,15 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
         //override by error
         helperText: null, //tab + (helperText),
         //match sytling
-        prefixIcon: Icon(
-          Icons.calendar_today,
-          //highlight a bit since it is required
-          color: widget.showError.value ? Colors.red : lbGreen,
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(
+            left: 8.0,
+          ),
+          child: Icon(
+            Icons.calendar_today,
+            //highlight a bit since it is required
+            color: widget.showError.value ? Colors.red : lbGreen,
+          ),
         ),
         //removes annoying bottom padding
         //contentPadding: EdgeInsets.zero,

@@ -66,12 +66,15 @@ class _FormBodyState extends State<FormBody> {
     Widget sliverAppBar = HeaderSliver(
       statusBarHeight: widget.statusBarHeight,
       topAppBarHeight: widget.appBarHeight,
+      
       //includes the bottom app bar
       //it doesn't feel like the statusBarHeight is part of the app in terms of visual ratio
       //so I don't count it when doing the ratio math
       //the top app bar KINDA doesn't feel like a part of it since it blends with the status bar
       //so I don't count it either
-      accentHeight: toGoldenRatioBig(
+
+      //NOTE: we are using the smaller option so the keyboard doesn't cover on field focus
+      accentHeight: toGoldenRatioSmall( 
         widget.entireScreenHeight -
             widget.statusBarHeight -
             widget.appBarHeight,

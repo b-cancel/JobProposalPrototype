@@ -208,8 +208,10 @@ class _MapOfAddressState extends State<MapOfAddress> {
       //TODO: determine tight zoom based on the size of the property at these coordinates
       //NOTE: currently this was select to show entirety of most houses
       //on and S10 through experimentation
-      //19 shows about 3 large houses across an s10's width
-      zoom: 20,
+      //19 shows about 1 house and the edge of 2 others 
+      //on an s10's widths and the selected SMALLER height
+      //so that the field would be visible when autofocusing
+      zoom: 19,
     );
   }
 

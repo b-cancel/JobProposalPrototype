@@ -22,7 +22,9 @@ class LineItemList extends StatefulWidget {
 class _LineItemListState extends State<LineItemList> {
   updateState() {
     if (mounted) {
-      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {});
+      });
     }
   }
 
@@ -37,6 +39,7 @@ class _LineItemListState extends State<LineItemList> {
       );
 
       //edit the copy of the list
+      //sets unique ID
       lineItemsCopy.add(LineItem());
 
       //have the notifier update
@@ -88,15 +91,15 @@ class _LineItemListState extends State<LineItemList> {
             //and no field should be focused
             bool autoFocusField = false;
             if (indexInVisualList == 0 && widget.addingLineItem.value) {
-              print("auto focus field on top");
               autoFocusField = true;
               widget.addingLineItem.value = false;
             }
 
             //return UI
             return Container(
+              key: ValueKey(aLineItem.id),
+              width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
-                color: (indexInActualList % 2 == 0) ? Colors.red : Colors.blue,
                 border: Border(
                   //styling match
                   bottom: BorderSide(
@@ -105,12 +108,92 @@ class _LineItemListState extends State<LineItemList> {
                   ),
                 ),
               ),
-              child: ListTile(
-                title: Text(indexInActualList.toString()),
-                trailing: LineItemPopUpMenuButton(
-                  lineItems: widget.lineItems,
-                  index: indexInActualList,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  ListTile(
+                    title: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        //label with number
+                        //primarily for use within map
+                        //secondarily for user orientation
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: 12,
+                            right: 12,
+                          ),
+                          //stack used icon size match the calendar icon above all of them
+                          child: Stack(
+                            children: <Widget>[
+                              Opacity(
+                                opacity: 0,
+                                child: Icon(
+                                  Icons.calendar_today,
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(2.0),
+                                      child: Text(
+                                        (indexInActualList + 1).toString(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          //fontSize: 22,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            //allow overflow to go to another line
+                            maxLines: null,
+                            //make it pretty
+                            decoration: InputDecoration(
+                              //obvious hint
+                              hintText: "Task Description",
+                              //remove the ugly border at the bottom
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                            ),
+                            //the autoscroll controller scrolls the field into view
+                            //autofocus if need
+                            autofocus: autoFocusField,
+                            //NOTE: since currency selection happens with another bit of UI
+                            textInputAction: TextInputAction.done,
+                            //update structure
+                            onChanged: (String newString) {
+                              widget.lineItems.value[indexInActualList]
+                                  .description = newString;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: LineItemPopUpMenuButton(
+                      lineItems: widget.lineItems,
+                      index: indexInActualList,
+                    ),
+                  ),
+                  //TODO: add material cost field
+                  //TODO: add labor cost field
+                  //TODO: add image gallery
+                ],
               ),
             );
           },
@@ -166,14 +249,14 @@ class LineItemPopUpMenuButton extends StatelessWidget {
         PopupMenuItem<LineItemAction>(
           value: LineItemAction.delete,
           child: IconText(
-            icon: Icons.delete, 
+            icon: Icons.delete,
             text: "delete",
           ),
         ),
         PopupMenuItem<LineItemAction>(
           value: LineItemAction.addImage,
           child: IconText(
-            icon: FontAwesome.camera, 
+            icon: FontAwesome.camera,
             text: "add image",
           ),
         ),

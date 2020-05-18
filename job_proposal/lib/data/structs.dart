@@ -1,17 +1,19 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+//available line item id
+int nextAvailableLineItemID = 0;
 class LineItem {
-  String description;
-  double materialsCost;
-  double laborCost;
+  int id;
+  String description = "";
+  double materialsCost = 0;
+  double laborCost = 0;
   //TODO: make this functional later
   List images = new List();
 
-  LineItem({
-    this.description: "",
-    this.materialsCost: 0,
-    this.laborCost: 0,
-  });
+  LineItem(){
+    this.id = nextAvailableLineItemID;
+    nextAvailableLineItemID++;
+  }
 }
 
 class ClientData {
