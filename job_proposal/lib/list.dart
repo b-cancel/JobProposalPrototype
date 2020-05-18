@@ -4,6 +4,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:job_proposal/data/structs.dart';
 import 'package:job_proposal/main.dart';
 import 'package:job_proposal/total.dart';
+import 'package:job_proposal/utils/imagePicker.dart';
 
 class LineItemList extends StatefulWidget {
   LineItemList({
@@ -303,7 +304,7 @@ class LineItemPopUpMenuButton extends StatelessWidget {
   final ValueNotifier<List<LineItem>> lineItems;
   final int index;
 
-  deleteLineItem(int index) {
+  deleteLineItem() {
     //TODO: optimize this
 
     //make of copy of the list
@@ -318,8 +319,29 @@ class LineItemPopUpMenuButton extends StatelessWidget {
     lineItems.value = lineItemsCopy;
   }
 
-  addImage(int index) {
-    print("Adding image to lineItem in index: " + index.toString());
+  addImage(BuildContext context) async {
+    String newLocation = await showImagePicker(
+      context, 
+    );
+
+    //the user may not have selected anything
+    /*
+    if(newLocation != null){ //the user did select something
+      //TODO: optimize this
+
+      //make of copy of the list
+      List<String> imageLocationsCopy = List<String>.from(
+        lineItems.value[index].imageLocations.value,
+      );
+
+      //edit the copy of the list
+      imageLocationsCopy.add(newLocation);
+
+      //have the notifier update, which then updates state
+      lineItems.value[index].imageLocations.value = imageLocationsCopy;
+    }*/
+
+    print("returned value " +  (newLocation ?? "NONE"));
   }
 
   @override
@@ -329,9 +351,9 @@ class LineItemPopUpMenuButton extends StatelessWidget {
     return PopupMenuButton<LineItemAction>(
       onSelected: (LineItemAction result) {
         if (result == LineItemAction.delete) {
-          deleteLineItem(index);
+          deleteLineItem();
         } else {
-          addImage(index);
+          addImage(context);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<LineItemAction>>[
@@ -370,8 +392,8 @@ class IconText extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.only(
-            right: 8.0,
+          padding: EdgeInsets.only(
+            right: 12.0,
           ),
           child: Icon(
             icon,
