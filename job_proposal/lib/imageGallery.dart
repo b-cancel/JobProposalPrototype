@@ -21,7 +21,7 @@ class ImageGallery extends StatefulWidget {
 class _ImageGalleryState extends State<ImageGallery> {
   updateState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if(mounted){
+      if (mounted) {
         setState(() {});
       }
     });
@@ -37,6 +37,21 @@ class _ImageGalleryState extends State<ImageGallery> {
   void dispose() {
     widget.imageLocations.removeListener(updateState);
     super.dispose();
+  }
+
+  removeImage(int index) {
+    //TODO: optmize this
+
+    //make of copy of the list
+    List<ImageLocation> imageLocationsCopy = List<ImageLocation>.from(
+      widget.imageLocations.value,
+    );
+
+    //edit the copy of the list
+    imageLocationsCopy.removeAt(index);
+
+    //have the notifier update, which then updates state
+    widget.imageLocations.value = imageLocationsCopy;
   }
 
   @override
@@ -66,12 +81,18 @@ class _ImageGalleryState extends State<ImageGallery> {
                 widget.imageLocations.value[indexInActualList];
 
             File file = File(aImageLocation.location);
-            //TODO: only show gallery if atleast 1 exists
             if (file.existsSync() == false) {
-              //TODO: delete it if not found
+              //NOTE: here we delete if not found
               //they deleted it manually
               //or they moved it manually
               //so you should delete it too
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  removeImage(indexInActualList);
+                }
+              });
+
               return Container();
             } else {
               return Padding(
@@ -94,7 +115,10 @@ class _ImageGalleryState extends State<ImageGallery> {
                         child: InkWell(
                           onTap: () {
                             FocusScope.of(context).unfocus();
-                            toFullScreen(file);
+                            toFullScreen(
+                              file,
+                              () => removeImage(indexInActualList),
+                            );
                           },
                           child: Container(),
                         ),
@@ -110,7 +134,7 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
-  toFullScreen(File file) {
+  toFullScreen(File file, Function onDelete) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -154,7 +178,8 @@ class _ImageGalleryState extends State<ImageGallery> {
                               color: lbGreen,
                               child: IconButton(
                                 onPressed: () {
-                                  print("deleting");
+                                  Navigator.of(context).pop();
+                                  onDelete();
                                 },
                                 icon: Icon(
                                   Icons.delete,
