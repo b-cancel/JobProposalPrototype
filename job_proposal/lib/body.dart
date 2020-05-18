@@ -62,6 +62,12 @@ class _FormBodyState extends State<FormBody> {
   //build
   @override
   Widget build(BuildContext context) {
+    double accentHeight = toGoldenRatioSmall( 
+      widget.entireScreenHeight -
+          widget.statusBarHeight -
+          widget.appBarHeight,
+    );
+
     //create app bar
     Widget sliverAppBar = HeaderSliver(
       statusBarHeight: widget.statusBarHeight,
@@ -74,11 +80,7 @@ class _FormBodyState extends State<FormBody> {
       //so I don't count it either
 
       //NOTE: we are using the smaller option so the keyboard doesn't cover on field focus
-      accentHeight: toGoldenRatioSmall( 
-        widget.entireScreenHeight -
-            widget.statusBarHeight -
-            widget.appBarHeight,
-      ),
+      accentHeight: accentHeight,
       bottomAppBarHeight: widget.appBarHeight,
       //data
       clientData: widget.clientData,
@@ -117,6 +119,7 @@ class _FormBodyState extends State<FormBody> {
     slivers.add(dueDateSelector);
     slivers.add( //the beef of the project
       LineItemList(
+        imageGalleryHeight: accentHeight,
         addingLineItem: addingLineItem,
         lineItems: lineItems,
       ),

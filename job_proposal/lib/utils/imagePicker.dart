@@ -133,14 +133,14 @@ class ImageSelectButtonUI extends StatelessWidget {
 changeImage(BuildContext context, bool isGallery) async {
   //NOTE: here we KNOW that we have already been given the permissions we need
   //TODO: ask for permissions aren't requested
-  File tempImage = await ImagePicker.pickImage(
+  File retreivedImage = await ImagePicker.pickImage(
     source: (isGallery) ? ImageSource.gallery : ImageSource.camera,
   );
 
   //if an image was actually selected
-  if (tempImage != null) {
+  if (retreivedImage != null) {
     Navigator.of(context).pop(
-      tempImage.path,
+      retreivedImage.path,
     );
   }
   //ELSE... we back out of selecting it

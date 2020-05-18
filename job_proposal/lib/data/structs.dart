@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+//available image item id
+int nextAvailableImageLocationID = 0;
+class ImageLocation {
+  int id;
+  String location;
+
+  ImageLocation(
+    String initialLocation,
+  ){
+    this.location = initialLocation;
+    this.id = nextAvailableImageLocationID;
+    nextAvailableImageLocationID++;
+  }
+}
+
 //available line item id
 int nextAvailableLineItemID = 0;
-
 class LineItem {
   int id;
   //if the LCC wants to be plain and simple this will be sent
@@ -17,8 +31,8 @@ class LineItem {
   //then add the image to the copy
   //then set this.value = copy
   //that way the horizontal list showing all the images knows to update
-  ValueNotifier<List<String>> imageLocations = new ValueNotifier<List<String>>(
-    new List<String>(),
+  ValueNotifier<List<ImageLocation>> imageLocations = new ValueNotifier<List<ImageLocation>>(
+    new List<ImageLocation>(),
   );
 
   LineItem() {

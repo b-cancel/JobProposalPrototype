@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:job_proposal/data/structs.dart';
+import 'package:job_proposal/imageGallery.dart';
 import 'package:job_proposal/main.dart';
 import 'package:job_proposal/total.dart';
 import 'package:job_proposal/utils/imagePicker.dart';
@@ -10,13 +11,15 @@ class LineItemList extends StatefulWidget {
   LineItemList({
     @required this.lineItems,
     @required this.addingLineItem,
+    @required this.imageGalleryHeight,
   });
 
-  //
   final ValueNotifier<List<LineItem>> lineItems;
   //set to true by add list button
   //set to false by us after completing process
   final ValueNotifier<bool> addingLineItem;
+  //used by image gallery
+  final double imageGalleryHeight;
 
   @override
   _LineItemListState createState() => _LineItemListState();
@@ -25,9 +28,7 @@ class LineItemList extends StatefulWidget {
 class _LineItemListState extends State<LineItemList> {
   updateState() {
     if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {});
-      });
+      setState(() {});
     }
   }
 
@@ -131,75 +132,101 @@ class _LineItemListState extends State<LineItemList> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     ListTile(
-                      title: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      title: Column(
                         children: <Widget>[
-                          //label with number
-                          //primarily for use within map
-                          //secondarily for user orientation
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 12,
-                              right: 12,
-                            ),
-                            //stack used icon size match the calendar icon above all of them
-                            child: Stack(
-                              children: <Widget>[
-                                Opacity(
-                                  opacity: 0,
-                                  child: Icon(
-                                    Icons.calendar_today,
-                                  ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              //label with number
+                              //primarily for use within map
+                              //secondarily for user orientation
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 12,
+                                  right: 12,
                                 ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      shape: BoxShape.circle,
+                                //stack used icon size match the calendar icon above all of them
+                                child: Stack(
+                                  children: <Widget>[
+                                    Opacity(
+                                      opacity: 0,
+                                      child: Icon(
+                                        Icons.calendar_today,
+                                      ),
                                     ),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(2.0),
-                                        child: Text(
-                                          (indexInActualList + 1).toString(),
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            //fontSize: 22,
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(2.0),
+                                            child: Text(
+                                              (indexInActualList + 1)
+                                                  .toString(),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                //fontSize: 22,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  //NOTE: required because autofocusing only works
+                                  //if something else wasnt focused before
+                                  focusNode:
+                                      aLineItem.focusNode, //might be null
+                                  //allow overflow to go to another line
+                                  maxLines: null,
+                                  //make it pretty
+                                  decoration: InputDecoration(
+                                    //obvious hint
+                                    hintText: "Task Description",
+                                    //remove the ugly border at the bottom
+                                    border: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                  ),
+                                  //NOTE: since currency selection happens with another bit of UI
+                                  textInputAction: TextInputAction.done,
+                                  //update structure
+                                  onChanged: (String newString) {
+                                    widget.lineItems.value[indexInActualList]
+                                        .description = newString;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          //costs field
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: 16,
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(
+                                  Icons.attach_money,
+                                  color: lbGrey,
+                                ),
+                                Expanded(
+                                  child: CostField(
+                                    lineItems: widget.lineItems,
+                                    indexInActualList: indexInActualList,
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              //NOTE: required because autofocusing only works
-                              //if something else wasnt focused before
-                              focusNode: aLineItem.focusNode, //might be null
-                              //allow overflow to go to another line
-                              maxLines: null,
-                              //make it pretty
-                              decoration: InputDecoration(
-                                //obvious hint
-                                hintText: "Task Description",
-                                //remove the ugly border at the bottom
-                                border: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                              ),
-                              //NOTE: since currency selection happens with another bit of UI
-                              textInputAction: TextInputAction.done,
-                              //update structure
-                              onChanged: (String newString) {
-                                widget.lineItems.value[indexInActualList]
-                                    .description = newString;
-                              },
                             ),
                           ),
                         ],
@@ -209,22 +236,16 @@ class _LineItemListState extends State<LineItemList> {
                         index: indexInActualList,
                       ),
                     ),
-                    //costs field
-                    Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.attach_money,
-                          color: lbGrey,
-                        ),
-                        Expanded(
-                          child: CostField(
-                            lineItems: widget.lineItems,
-                            indexInActualList: indexInActualList,
-                          ),
-                        ),
-                      ],
+                    //image gallery
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: 56.0,
+                      ),
+                      child: ImageGallery(
+                        imageGalleryHeight: widget.imageGalleryHeight,
+                        imageLocations: aLineItem.imageLocations,
+                      ),
                     ),
-                    //TODO: add image gallery
                   ],
                 ),
               );
@@ -251,7 +272,7 @@ class CostField extends StatelessWidget {
     return TextField(
       //only expose numbers on keyboard
       keyboardType: TextInputType.numberWithOptions(
-        signed: false, 
+        signed: false,
         decimal: false,
       ),
       //you can still type silly things so
@@ -277,12 +298,12 @@ class CostField extends StatelessWidget {
       ),
       //NOTE: since currency selection happens with another bit of UI
       textInputAction: TextInputAction.done,
-      //NOTE: because of text input formatter 
+      //NOTE: because of text input formatter
       //we are guaranteed to have a valid dollar amount here
       onChanged: (String newString) {
         //parse the new number to update the total
         int newCost;
-        if(newString == null || newString.length == 0){
+        if (newString == null || newString.length == 0) {
           newCost = 0;
         } else {
           newCost = int.parse(newString);
@@ -321,33 +342,35 @@ class LineItemPopUpMenuButton extends StatelessWidget {
 
   addImage(BuildContext context) async {
     String newLocation = await showImagePicker(
-      context, 
+      context,
     );
 
     //the user may not have selected anything
-    /*
-    if(newLocation != null){ //the user did select something
+    if (newLocation != null) {
+      //the user did select something
       //TODO: optimize this
 
       //make of copy of the list
-      List<String> imageLocationsCopy = List<String>.from(
+      List<ImageLocation> imageLocationsCopy = List<ImageLocation>.from(
         lineItems.value[index].imageLocations.value,
       );
 
       //edit the copy of the list
-      imageLocationsCopy.add(newLocation);
+      imageLocationsCopy.add(
+        ImageLocation(
+          newLocation,
+        ),
+      );
 
       //have the notifier update, which then updates state
       lineItems.value[index].imageLocations.value = imageLocationsCopy;
-    }*/
+    }
 
-    print("returned value " +  (newLocation ?? "NONE"));
+    print("returned value " + (newLocation ?? "NONE"));
   }
 
   @override
   Widget build(BuildContext context) {
-    String text = "delete";
-    IconData icon = Icons.delete;
     return PopupMenuButton<LineItemAction>(
       onSelected: (LineItemAction result) {
         if (result == LineItemAction.delete) {
@@ -407,16 +430,15 @@ class IconText extends StatelessWidget {
   }
 }
 
-String removeLeadingZeros(String string){
+String removeLeadingZeros(String string) {
   bool hasSeenNumberOtherThan0 = false;
   String result = "";
-  for(int i = 0; i < string.length; i++){
+  for (int i = 0; i < string.length; i++) {
     String char = string[i];
-    if(char == "0" && hasSeenNumberOtherThan0){
+    if (char == "0" && hasSeenNumberOtherThan0) {
       result += char;
-    }
-    else{
-      if(char != "0"){
+    } else {
+      if (char != "0") {
         hasSeenNumberOtherThan0 = true;
         result += char;
       }
@@ -428,19 +450,16 @@ String removeLeadingZeros(String string){
 class NoLeadingZeros extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue
-  ) {
+      TextEditingValue oldValue, TextEditingValue newValue) {
     //make sure new value has no leading 0s
     String noLeadingZeros = removeLeadingZeros(
       newValue.text,
     );
 
     //if they are different update else dont
-    if(newValue.text == noLeadingZeros){
+    if (newValue.text == noLeadingZeros) {
       return newValue;
-    }
-    else{
+    } else {
       return TextEditingValue(
         text: noLeadingZeros,
       );

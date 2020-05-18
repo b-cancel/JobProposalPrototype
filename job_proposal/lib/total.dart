@@ -61,7 +61,13 @@ class _DisplayTotalState extends State<DisplayTotal> {
             top: 24,
             bottom: 0,
           ),
-          child: Row(
+          child: (total == 0) ? Text(
+            "Free Of Charge",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 36,
+            ),
+          ) : Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
