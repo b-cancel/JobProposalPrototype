@@ -89,9 +89,18 @@ class _LineItemListState extends State<LineItemList> {
             //the we autofocus this description field
             //ELSE... we are deleting something
             //and no field should be focused
-            bool autoFocusField = false;
             if (indexInVisualList == 0 && widget.addingLineItem.value) {
-              autoFocusField = true;
+              //force autofocus if the first one didn't do the trick
+              //for reasons explained in the autofocus parameter
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if(aLineItem.focusNode.hasFocus == false){
+                  //NOTE: if you don't unfocus first you get multiple fields focused at once
+                  //FocusScope.of(context).unfocus();
+                  FocusScope.of(context).requestFocus(
+                    aLineItem.focusNode,
+                  );
+                }
+              });
               widget.addingLineItem.value = false;
             }
 
@@ -158,6 +167,9 @@ class _LineItemListState extends State<LineItemList> {
                         ),
                         Expanded(
                           child: TextField(
+                            //NOTE: required because autofocusing only works 
+                            //if something else wasnt focused before
+                            focusNode: aLineItem.focusNode, //might be null
                             //allow overflow to go to another line
                             maxLines: null,
                             //make it pretty
@@ -171,9 +183,6 @@ class _LineItemListState extends State<LineItemList> {
                               disabledBorder: InputBorder.none,
                               errorBorder: InputBorder.none,
                             ),
-                            //the autoscroll controller scrolls the field into view
-                            //autofocus if need
-                            autofocus: autoFocusField,
                             //NOTE: since currency selection happens with another bit of UI
                             textInputAction: TextInputAction.done,
                             //update structure
