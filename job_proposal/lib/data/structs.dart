@@ -6,10 +6,10 @@ int nextAvailableLineItemID = 0;
 class LineItem {
   int id;
   //if the LCC wants to be plain and simple this will be sent
-  String description = "Agreed On Yard Work";
-  //simplification, but all thats needed for most scenarios
-  ValueNotifier<int> materialsCost = new ValueNotifier<int>(0);
-  ValueNotifier<int> laborCost = new ValueNotifier<int>(0);
+  String description = "What we agreed on";
+  //simplification of just using dollars, 
+  //but thats all you need for most scenarios
+  ValueNotifier<int> cost = new ValueNotifier<int>(0);
   //used only for UI
   FocusNode focusNode = new FocusNode();
   //TODO: make this functional later

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:job_proposal/data/structs.dart';
 import 'package:job_proposal/main.dart';
@@ -81,142 +82,212 @@ class _LineItemListState extends State<LineItemList> {
           lineItemCount + 1,
           (indexInVisualList) {
             //the total that is calculated at the bottom
-            if(indexInVisualList == lineItemCount){
+            if (indexInVisualList == lineItemCount) {
               return DisplayTotal(
                 lineItems: widget.lineItems,
               );
-            }
-            else { //list item
+            } else {
+              //list item
               //the list is added to from the back programatically
-            //but the last value added should be on top
-            int indexInActualList = lastIndex - indexInVisualList;
-            LineItem aLineItem = widget.lineItems.value[indexInActualList];
+              //but the last value added should be on top
+              int indexInActualList = lastIndex - indexInVisualList;
+              LineItem aLineItem = widget.lineItems.value[indexInActualList];
 
-            //IF... this is the top most item
-            //and we are addingALineItem
-            //the we autofocus this description field
-            //ELSE... we are deleting something
-            //and no field should be focused
-            if (indexInVisualList == 0 && widget.addingLineItem.value) {
-              //force autofocus if the first one didn't do the trick
-              //for reasons explained in the autofocus parameter
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if(aLineItem.focusNode.hasFocus == false){
-                  //NOTE: if you don't unfocus first you get multiple fields focused at once
-                  //FocusScope.of(context).unfocus();
-                  FocusScope.of(context).requestFocus(
-                    aLineItem.focusNode,
-                  );
-                }
-              });
-              widget.addingLineItem.value = false;
-            }
+              //IF... this is the top most item
+              //and we are addingALineItem
+              //the we autofocus this description field
+              //ELSE... we are deleting something
+              //and no field should be focused
+              if (indexInVisualList == 0 && widget.addingLineItem.value) {
+                //force autofocus if the first one didn't do the trick
+                //for reasons explained in the autofocus parameter
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (aLineItem.focusNode.hasFocus == false) {
+                    //NOTE: if you don't unfocus first you get multiple fields focused at once
+                    //FocusScope.of(context).unfocus();
+                    FocusScope.of(context).requestFocus(
+                      aLineItem.focusNode,
+                    );
+                  }
+                });
+                widget.addingLineItem.value = false;
+              }
 
-            //return UI
-            return Container(
-              key: ValueKey(aLineItem.id),
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                border: Border(
-                  //styling match
-                  bottom: BorderSide(
-                    color: lbGrey,
-                    width: 1,
+              //return UI
+              return Container(
+                key: ValueKey(aLineItem.id),
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  border: Border(
+                    //styling match
+                    bottom: BorderSide(
+                      color: lbGrey,
+                      width: 1,
+                    ),
                   ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  ListTile(
-                    title: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        //label with number
-                        //primarily for use within map
-                        //secondarily for user orientation
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: 12,
-                            right: 12,
-                          ),
-                          //stack used icon size match the calendar icon above all of them
-                          child: Stack(
-                            children: <Widget>[
-                              Opacity(
-                                opacity: 0,
-                                child: Icon(
-                                  Icons.calendar_today,
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    shape: BoxShape.circle,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    ListTile(
+                      title: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          //label with number
+                          //primarily for use within map
+                          //secondarily for user orientation
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: 12,
+                              right: 12,
+                            ),
+                            //stack used icon size match the calendar icon above all of them
+                            child: Stack(
+                              children: <Widget>[
+                                Opacity(
+                                  opacity: 0,
+                                  child: Icon(
+                                    Icons.calendar_today,
                                   ),
-                                  child: Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(2.0),
-                                      child: Text(
-                                        (indexInActualList + 1).toString(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          //fontSize: 22,
+                                ),
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(2.0),
+                                        child: Text(
+                                          (indexInActualList + 1).toString(),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            //fontSize: 22,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          Expanded(
+                            child: TextField(
+                              //NOTE: required because autofocusing only works
+                              //if something else wasnt focused before
+                              focusNode: aLineItem.focusNode, //might be null
+                              //allow overflow to go to another line
+                              maxLines: null,
+                              //make it pretty
+                              decoration: InputDecoration(
+                                //obvious hint
+                                hintText: "Task Description",
+                                //remove the ugly border at the bottom
+                                border: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                              ),
+                              //NOTE: since currency selection happens with another bit of UI
+                              textInputAction: TextInputAction.done,
+                              //update structure
+                              onChanged: (String newString) {
+                                widget.lineItems.value[indexInActualList]
+                                    .description = newString;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: LineItemPopUpMenuButton(
+                        lineItems: widget.lineItems,
+                        index: indexInActualList,
+                      ),
+                    ),
+                    //costs field
+                    Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.attach_money,
+                          color: lbGrey,
                         ),
                         Expanded(
-                          child: TextField(
-                            //NOTE: required because autofocusing only works 
-                            //if something else wasnt focused before
-                            focusNode: aLineItem.focusNode, //might be null
-                            //allow overflow to go to another line
-                            maxLines: null,
-                            //make it pretty
-                            decoration: InputDecoration(
-                              //obvious hint
-                              hintText: "Task Description",
-                              //remove the ugly border at the bottom
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                            ),
-                            //NOTE: since currency selection happens with another bit of UI
-                            textInputAction: TextInputAction.done,
-                            //update structure
-                            onChanged: (String newString) {
-                              widget.lineItems.value[indexInActualList]
-                                  .description = newString;
-                            },
+                          child: CostField(
+                            lineItems: widget.lineItems,
+                            indexInActualList: indexInActualList,
                           ),
                         ),
                       ],
                     ),
-                    trailing: LineItemPopUpMenuButton(
-                      lineItems: widget.lineItems,
-                      index: indexInActualList,
-                    ),
-                  ),
-                  //TODO: add material cost field
-                  //TODO: add labor cost field
-                  //TODO: add image gallery
-                ],
-              ),
-            );
+                    //TODO: add image gallery
+                  ],
+                ),
+              );
             }
           },
         ),
       ),
+    );
+  }
+}
+
+class CostField extends StatelessWidget {
+  CostField({
+    Key key,
+    @required this.lineItems,
+    @required this.indexInActualList,
+  }) : super(key: key);
+
+  final ValueNotifier<List<LineItem>> lineItems;
+  final int indexInActualList;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      //only expose numbers on keyboard
+      keyboardType: TextInputType.numberWithOptions(
+        signed: false, 
+        decimal: false,
+      ),
+      //you can still type silly things so
+      inputFormatters: <TextInputFormatter>[
+        //only allow the digits on the keyboard that may have . and -
+        WhitelistingTextInputFormatter.digitsOnly,
+        //after only have digits
+        //make sure that you remove leading 0s
+        NoLeadingZeros(),
+      ], // Only num
+      //allow overflow to go to another line
+      maxLines: 1,
+      //make it pretty
+      decoration: InputDecoration(
+        //obvious hint
+        hintText: "Free Of Charge",
+        //remove the ugly border at the bottom
+        border: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+      ),
+      //NOTE: since currency selection happens with another bit of UI
+      textInputAction: TextInputAction.done,
+      //NOTE: because of text input formatter 
+      //we are guaranteed to have a valid dollar amount here
+      onChanged: (String newString) {
+        //parse the new number to update the total
+        int newCost;
+        if(newString == null || newString.length == 0){
+          newCost = 0;
+        } else {
+          newCost = int.parse(newString);
+        }
+        lineItems.value[indexInActualList].cost.value = newCost;
+      },
     );
   }
 }
@@ -311,5 +382,46 @@ class IconText extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+String removeLeadingZeros(String string){
+  bool hasSeenNumberOtherThan0 = false;
+  String result = "";
+  for(int i = 0; i < string.length; i++){
+    String char = string[i];
+    if(char == "0" && hasSeenNumberOtherThan0){
+      result += char;
+    }
+    else{
+      if(char != "0"){
+        hasSeenNumberOtherThan0 = true;
+        result += char;
+      }
+    }
+  }
+  return result;
+}
+
+class NoLeadingZeros extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue
+  ) {
+    //make sure new value has no leading 0s
+    String noLeadingZeros = removeLeadingZeros(
+      newValue.text,
+    );
+
+    //if they are different update else dont
+    if(newValue.text == noLeadingZeros){
+      return newValue;
+    }
+    else{
+      return TextEditingValue(
+        text: noLeadingZeros,
+      );
+    }
   }
 }

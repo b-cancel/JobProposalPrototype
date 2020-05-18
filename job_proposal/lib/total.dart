@@ -29,8 +29,7 @@ class _DisplayTotalState extends State<DisplayTotal> {
     super.initState();
     for(int i = 0; i < widget.lineItems.value.length; i++){
       LineItem aLineItem = widget.lineItems.value[i];
-      aLineItem.laborCost.addListener(updateState);
-      aLineItem.materialsCost.addListener(updateState);
+      aLineItem.cost.addListener(updateState);
     }
   }
 
@@ -38,8 +37,7 @@ class _DisplayTotalState extends State<DisplayTotal> {
   void dispose() { 
     for(int i = 0; i < widget.lineItems.value.length; i++){
       LineItem aLineItem = widget.lineItems.value[i];
-      aLineItem.laborCost.removeListener(updateState);
-      aLineItem.materialsCost.removeListener(updateState);
+      aLineItem.cost.removeListener(updateState);
     }
     super.dispose();
   }
@@ -47,82 +45,41 @@ class _DisplayTotalState extends State<DisplayTotal> {
   //live total updates
   @override
   Widget build(BuildContext context) {
-    int laborTotal = 225;
-    int materialsTotal = 50;
+    int total = 0;
     for(int i = 0; i < widget.lineItems.value.length; i++){
       LineItem aLineItem = widget.lineItems.value[i];
-      laborTotal += aLineItem.laborCost.value;
-      materialsTotal += aLineItem.materialsCost.value;
+      total += aLineItem.cost.value;
     }
-    int total = laborTotal + materialsTotal;
 
     //build
     return Visibility(
       //in case for some reason they want to do a job for free
       visible: widget.lineItems.value.length > 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Visibility(
-            //IF we only have 1 its obvious where our prices come from
-            visible: laborTotal != 0 && materialsTotal != 0,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 2,
-                    color: lbGrey,
-                  ),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 24,
+            bottom: 0,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                "Total ",
+                style: TextStyle(
+                  fontSize: 36,
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  Expanded(
-                    child: CategoricAmmount(
-                      onLeft: true,
-                      description: "Labor", 
-                      ammount: laborTotal,
-                    ),
-                  ),
-                  Expanded(
-                    child: CategoricAmmount(
-                      onLeft: false,
-                      description: "Materials", 
-                      ammount: materialsTotal,
-                    ),
-                  ),
-                ],
+              Text(
+                "\$" + total.toString(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 36,
+                ),
               ),
-            ),
+            ],
           ),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: 24,
-                bottom: 0,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    "Total ",
-                    style: TextStyle(
-                      fontSize: 36,
-                    ),
-                  ),
-                  Text(
-                    "\$" + total.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 36,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
