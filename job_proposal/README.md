@@ -1,6 +1,6 @@
 Job Proposal
 
-![Address Picker](https://media.giphy.com/media/dyvj1gBn4HYBfVDrpr/giphy.gif)
+[![Address Picker](https://media.giphy.com/media/dyvj1gBn4HYBfVDrpr/giphy.gif)](https://media.giphy.com/media/dyvj1gBn4HYBfVDrpr/giphy.gif)
 ![Due Date Picker](https://media.giphy.com/media/VJYrbNGSMxUZ38RuU9/giphy.gif)
 ![Line Item Manipulation](https://media.giphy.com/media/UvK4kZ48BSmlVhiFQp/giphy.gif)
 ![Image Manipulation](https://media.giphy.com/media/fsaqYZsD0P0x600rE1/giphy.gif)
